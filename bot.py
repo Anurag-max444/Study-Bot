@@ -1,5 +1,7 @@
 import os
 import logging
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from dotenv import load_dotenv
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -12,7 +14,7 @@ import db
 from lang import t
 from default_syllabus import DEFAULT_SYLLABUS
 
-# NOTE: Railway pe env var TZ=Asia/Kolkata set karna, warna server UTC time use karega
+# NOTE: Render pe env var TZ=Asia/Kolkata set karna, warna server UTC time use karega
 # aur reminders galat time pe jayenge.
 
 load_dotenv()
@@ -312,6 +314,23 @@ async def handle_question_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
 
 
+class _HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"Study Buddy bot is alive!")
+
+    def log_message(self, format, *args):
+        pass  # keep logs clean, don't print every ping
+
+
+def _run_health_server():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), _HealthCheckHandler)
+    server.serve_forever()
+
+
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
@@ -327,6 +346,10 @@ def main():
     # Har minute check karo ki kisi user ka reminder time ab hua hai kya
     app.job_queue.run_repeating(send_morning_plan, interval=60, first=5)
     app.job_queue.run_repeating(send_evening_checklist, interval=60, first=5)
+
+    # Render free Web Service ko port pe response chahiye, warna spin-down/fail ho jata hai.
+    # Ye background thread mein ek chhota HTTP server chalata hai jise UptimeRobot ping kar sake.
+    threading.Thread(target=_run_health_server, daemon=True).start()
 
     print("Bot chal raha hai...")
     app.run_polling()

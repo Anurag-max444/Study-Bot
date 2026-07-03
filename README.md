@@ -44,13 +44,27 @@ git commit -m "Phase 1: onboarding flow"
 git push origin main
 ```
 
-### 6. Railway pe Deploy (Free)
-1. https://railway.app pe GitHub se login karo
-2. **New Project > Deploy from GitHub repo** > apna repo select karo
-3. Railway apne aap `requirements.txt` dekh ke Python detect kar lega
-4. **Variables** tab me jaake `.env` wali teeno cheezein add karo (TELEGRAM_BOT_TOKEN, SUPABASE_URL, SUPABASE_KEY)
-5. **Settings > Start Command** me daalo: `python bot.py`
-6. Deploy hote hi bot 24x7 chalega, free tier me ~500 hours/month milte hai (ek bot ke liye kaafi hai)
+### 6. Render pe Deploy (Free — Web Service)
+1. https://render.com pe GitHub se login karo
+2. **New > Web Service** > apna repo select karo
+3. Settings:
+   - **Language:** Python 3
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `python bot.py`
+4. **Environment** tab me jaake ye variables add karo:
+   - `TELEGRAM_BOT_TOKEN`
+   - `SUPABASE_URL`
+   - `SUPABASE_KEY`
+   - `TZ` = `Asia/Kolkata` (warna reminders galat time pe aayenge)
+5. Deploy karo. Render free Web Service ko ek open HTTP port chahiye hota hai — bot me isliye ek chhota health-check server already add kiya hua hai jo apne aap chal jayega, kuch extra karne ki zarurat nahi.
+
+### 7. Render Free Tier ko sote rehne se rokna (UptimeRobot)
+Render free Web Service 15 min inactivity ke baad sleep ho jata hai. Isse bachne ke liye:
+1. https://uptimerobot.com pe free account banao
+2. **Add New Monitor** > Monitor Type: `HTTP(s)`
+3. URL me apne Render service ka URL daalo (jaise `https://your-bot-name.onrender.com`)
+4. Monitoring interval: **5 minutes**
+5. Save kar do — ab UptimeRobot har 5 min me bot ko ping karega, wo kabhi sleep nahi hoga
 
 ---
 
@@ -65,9 +79,8 @@ Ye add hua hai:
 
 ### Phase 2 ke liye extra setup:
 1. Supabase SQL Editor me `migration_phase2.sql` run karo
-2. Railway pe Variables tab me ek aur variable add karo: `TZ=Asia/Kolkata`
-   (zaroori hai warna server UTC time use karega, reminders galat time pe aayenge)
-3. GitHub pe push karo, Railway apne aap redeploy kar dega
+2. `TZ=Asia/Kolkata` already Render Environment tab me add kiya hua hoga (Step 6 me batay anusar)
+3. GitHub pe push karo, Render apne aap redeploy kar dega
 
 ### Test kaise kare
 - `/start` se onboarding poora karo, reminder time abhi se 2 min aage set karo
