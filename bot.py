@@ -332,21 +332,137 @@ def _run_health_server():
     server.serve_forever()
 
 
+async def addreminder_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    if not user:
+        await start(update, context)
+        return
+
+    lang = user["language"]
+    if not context.args or len(context.args) != 1:
+        await update.message.reply_text(t("addreminder_usage", lang))
+        return
+
+    time_str = context.args[0].strip()
+    if not (len(time_str) == 5 and time_str[2] == ":" and time_str.replace(":", "").isdigit()):
+        await update.message.reply_text(t("invalid_time", lang))
+        return
+
+    db.add_reminder_slot(user_id, time_str)
+    await update.message.reply_text(t("reminder_added", lang, time=time_str))
+
+
+async def removereminder_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    if not user:
+        await start(update, context)
+        return
+
+    lang = user["language"]
+    if not context.args or len(context.args) != 1:
+        await update.message.reply_text(t("addreminder_usage", lang))
+        return
+
+    time_str = context.args[0].strip()
+    removed = db.remove_reminder_slot(user_id, time_str)
+    if removed:
+        await update.message.reply_text(t("reminder_removed", lang, time=time_str))
+    else:
+        await update.message.reply_text(t("reminder_not_found", lang))
+
+
+async def myreminders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    if not user:
+        await start(update, context)
+        return
+
+    lang = user["language"]
+    slots = db.get_reminder_slots(user_id)
+    if not slots:
+        await update.message.reply_text(t("reminder_list_empty", lang))
+        return
+
+    msg = t("reminder_list_header", lang)
+    msg += "\n".join(f"⏰ {slot['time']}" for slot in slots)
+    await update.message.reply_text(msg)
+
+
+async def send_task_reminders(context: ContextTypes.DEFAULT_TYPE):
+    """Runs every minute. For each user with a reminder_slot matching now, sends ONE next topic."""
+    now_str = datetime.now().strftime("%H:%M")
+    today_str = datetime.now().strftime("%Y-%m-%d")
+
+    slot_rows = db.get_users_with_slot_at(now_str)
+    for slot in slot_rows:
+        user = slot.get("users")
+        if not user or user.get("onboarding_step") != "done":
+            continue
+
+        lang = user["language"]
+        task = db.get_or_create_next_task(user["id"], today_str)
+
+        if not task:
+            await context.bot.send_message(user["id"], t("task_all_done_today", lang))
+            continue
+
+        header = t("task_reminder_header", lang, name=user["name"] or "")
+        topic_line = f"\n\n📌 {task['syllabus']['subject']}: {task['syllabus']['topic']}"
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton(t("mark_done_button", lang), callback_data=f"donetask_{task['id']}")]
+        ])
+        await context.bot.send_message(user["id"], header + topic_line, reply_markup=keyboard)
+
+
+async def mark_task_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    user_id = query.from_user.id
+    user = db.get_user(user_id)
+    lang = user["language"] if user else "hinglish"
+
+    plan_id = int(query.data.replace("donetask_", ""))
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    db.toggle_plan_item(plan_id, True, today_str=today_str)
+
+    await query.edit_message_text(
+        query.message.text + "\n\n✅",
+    )
+    await context.bot.send_message(user_id, t("task_marked_done", lang, name=user["name"] or ""))
+
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    lang = user["language"] if user else "hinglish"
+    await update.message.reply_text(t("help_text", lang), parse_mode="Markdown")
+
+
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("progress", progress_command))
     app.add_handler(CommandHandler("extractquestions", extractquestions_command))
+    app.add_handler(CommandHandler("pdf", extractquestions_command))
+    app.add_handler(CommandHandler("addreminder", addreminder_command))
+    app.add_handler(CommandHandler("removereminder", removereminder_command))
+    app.add_handler(CommandHandler("myreminders", myreminders_command))
     app.add_handler(CallbackQueryHandler(language_chosen, pattern="^lang_"))
     app.add_handler(CallbackQueryHandler(exam_chosen, pattern="^exam_"))
     app.add_handler(MessageHandler(filters.Document.PDF, handle_pdf))
     app.add_handler(CallbackQueryHandler(toggle_checklist_item, pattern="^toggle_"))
+    app.add_handler(CallbackQueryHandler(mark_task_done, pattern="^donetask_"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
     # Har minute check karo ki kisi user ka reminder time ab hua hai kya
     app.job_queue.run_repeating(send_morning_plan, interval=60, first=5)
     app.job_queue.run_repeating(send_evening_checklist, interval=60, first=5)
+    app.job_queue.run_repeating(send_task_reminders, interval=60, first=5)
 
     # Render free Web Service ko port pe response chahiye, warna spin-down/fail ho jata hai.
     # Ye background thread mein ek chhota HTTP server chalata hai jise UptimeRobot ping kar sake.

@@ -164,3 +164,76 @@ def toggle_plan_item(plan_id: int, completed: bool, today_str: str = None):
             mark_topic_status(plan.data[0]["syllabus_id"], "done")
             if today_str:
                 update_streak_on_completion(plan.data[0]["user_id"], today_str)
+
+
+# ---- Per-task reminder slots (multiple reminders/day, one topic each) ----
+
+def add_reminder_slot(user_id: int, time_str: str):
+    supabase.table("reminder_slots").insert({"user_id": user_id, "time": time_str}).execute()
+
+
+def remove_reminder_slot(user_id: int, time_str: str):
+    res = (
+        supabase.table("reminder_slots")
+        .delete()
+        .eq("user_id", user_id)
+        .eq("time", time_str)
+        .execute()
+    )
+    return bool(res.data)
+
+
+def get_reminder_slots(user_id: int):
+    res = (
+        supabase.table("reminder_slots")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("time")
+        .execute()
+    )
+    return res.data
+
+
+def get_users_with_slot_at(time_str: str):
+    res = (
+        supabase.table("reminder_slots")
+        .select("*, users(*)")
+        .eq("time", time_str)
+        .execute()
+    )
+    return res.data
+
+
+def get_or_create_next_task(user_id: int, today_str: str):
+    """Picks ONE pending topic not already assigned today, adds it to daily_plan, returns it joined."""
+    existing = get_today_plan(user_id, today_str)
+    used_syllabus_ids = {e["syllabus_id"] for e in existing}
+
+    pending = (
+        supabase.table("syllabus")
+        .select("*")
+        .eq("user_id", user_id)
+        .eq("status", "pending")
+        .execute()
+    ).data
+
+    next_topic = next((topic for topic in pending if topic["id"] not in used_syllabus_ids), None)
+    if not next_topic:
+        return None
+
+    inserted = (
+        supabase.table("daily_plan")
+        .insert({"user_id": user_id, "plan_date": today_str, "syllabus_id": next_topic["id"]})
+        .execute()
+    )
+    if not inserted.data:
+        return None
+
+    new_id = inserted.data[0]["id"]
+    result = (
+        supabase.table("daily_plan")
+        .select("*, syllabus(*)")
+        .eq("id", new_id)
+        .execute()
+    )
+    return result.data[0] if result.data else None

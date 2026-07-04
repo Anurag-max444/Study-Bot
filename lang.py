@@ -1,113 +1,215 @@
 """
 Sab user-facing text yaha hai, teeno languages me.
 Naya text add karna ho to teeno dict me same key ke saath add karo.
+
+Tone guide: Hinglish version bhi utni hi respectful/professional honi chahiye
+jitni Hindi/English — 'aap' use karo, casual 'tu/tera' avoid karo.
 """
 
 TEXT = {
     "welcome": {
-        "hindi": "नमस्ते {name}! 📚 मैं आपका स्टडी बडी बॉट हूँ। रोज सुबह आपको पढ़ाई का प्लान भेजूंगा और शाम को प्रोग्रेस पूछूंगा।",
-        "english": "Hey {name}! 📚 I'm your Study Buddy bot. I'll send you a daily study plan every morning and check your progress in the evening.",
-        "hinglish": "Hey {name}! 📚 Main tera Study Buddy bot hu. Roz subah study plan bhejunga aur sham ko progress puchunga.",
+        "hindi": "नमस्ते {name}! 📚 मैं Study Sync हूँ, आपका स्टडी पार्टनर। सभी कमांड्स के लिए /help टाइप कीजिए।",
+        "english": "Hello {name}! 📚 I'm Study Sync, your study partner. Type /help to see everything I can do.",
+        "hinglish": "Namaste {name}! 📚 Main Study Sync hoon, aapka study partner. Sabhi commands dekhne ke liye /help type kijiye.",
     },
     "ask_language": {
-        "hindi": "पहले बताओ, आप किस भाषा में बात करना पसंद करेंगे?",
-        "english": "First, which language would you like to chat in?",
-        "hinglish": "Sabse pehle batao, kaunsi language me baat karni hai?",
+        "hindi": "सबसे पहले बताइए, आप किस भाषा में बात करना पसंद करेंगे?",
+        "english": "First, which language would you prefer to chat in?",
+        "hinglish": "Sabse pehle bataiye, aap kis language mein baat karna pasand karenge?",
     },
     "ask_name": {
         "hindi": "आपका नाम क्या है?",
         "english": "What's your name?",
-        "hinglish": "Tera naam kya hai?",
+        "hinglish": "Aapka naam kya hai?",
     },
     "ask_exam": {
-        "hindi": "आप किस एग्जाम की तैयारी कर रहे हो?",
+        "hindi": "आप किस परीक्षा की तैयारी कर रहे हैं?",
         "english": "Which exam are you preparing for?",
-        "hinglish": "Kaunse exam ki tayyari kar raha hai?",
+        "hinglish": "Aap kis exam ki taiyaari kar rahe hain?",
     },
     "ask_syllabus_pdf": {
-        "hindi": "अगर आपके पास सिलेबस की PDF है तो भेज दो, वरना 'skip' टाइप करो — मैं डिफॉल्ट सिलेबस लोड कर दूंगा।",
-        "english": "If you have a syllabus PDF, send it here, otherwise type 'skip' — I'll load the default syllabus.",
-        "hinglish": "Agar syllabus ki PDF hai to bhej de, warna 'skip' type kar de — main default syllabus load kar dunga.",
+        "hindi": "अगर आपके पास सिलेबस की PDF है तो कृपया भेज दीजिए, वरना 'skip' टाइप कीजिए — मैं डिफ़ॉल्ट सिलेबस लोड कर दूंगा।",
+        "english": "If you have a syllabus PDF, please send it here, otherwise type 'skip' — I'll load the default syllabus for you.",
+        "hinglish": "Agar aapke paas syllabus ki PDF hai to kripya bhej dijiye, warna 'skip' type kijiye — main default syllabus load kar dunga.",
     },
     "ask_hours": {
-        "hindi": "रोज कितने घंटे पढ़ाई कर सकते हो? (सिर्फ नंबर भेजो, जैसे 4)",
-        "english": "How many hours can you study daily? (just send the number, e.g. 4)",
-        "hinglish": "Roz kitne ghante padh sakta hai? (bas number bhej, jaise 4)",
+        "hindi": "आप रोज़ कितने घंटे पढ़ाई कर सकते हैं? (सिर्फ नंबर भेजिए, जैसे 4)",
+        "english": "How many hours can you study daily? (please send just the number, e.g. 4)",
+        "hinglish": "Aap roz kitne ghante study kar sakte hain? (bas number bhejiye, jaise 4)",
     },
     "ask_reminder_time": {
-        "hindi": "सुबह किस टाइम रिमाइंडर चाहिए? (24hr फॉर्मेट में, जैसे 07:00)",
-        "english": "What time should I send your morning reminder? (24hr format, e.g. 07:00)",
-        "hinglish": "Subah kis time reminder chahiye? (24hr format me, jaise 07:00)",
+        "hindi": "सुबह किस समय रिमाइंडर चाहिए? (24hr फॉर्मेट में, जैसे 07:00)",
+        "english": "What time would you like your morning reminder? (24hr format, e.g. 07:00)",
+        "hinglish": "Subah kis time reminder chahiye? (24hr format mein, jaise 07:00)",
     },
     "ask_evening_time": {
-        "hindi": "शाम को किस टाइम प्रोग्रेस चेकलिस्ट चाहिए? (24hr फॉर्मेट, जैसे 19:00)",
+        "hindi": "शाम को किस समय प्रोग्रेस चेकलिस्ट चाहिए? (24hr फॉर्मेट, जैसे 19:00)",
         "english": "What time should I send your evening progress checklist? (24hr format, e.g. 19:00)",
-        "hinglish": "Sham ko kis time progress checklist chahiye? (24hr format, jaise 19:00)",
+        "hinglish": "Shaam ko kis time progress checklist chahiye? (24hr format, jaise 19:00)",
     },
     "morning_plan_header": {
-        "hindi": "☀️ सुप्रभात {name}! आज का प्लान:",
-        "english": "☀️ Good morning {name}! Today's plan:",
-        "hinglish": "☀️ Good morning {name}! Aaj ka plan:",
+        "hindi": "☀️ सुप्रभात {name}! आज का प्लान तैयार है:",
+        "english": "☀️ Good morning {name}! Here's today's plan:",
+        "hinglish": "☀️ Good morning {name}! Aaj ka plan taiyaar hai:",
     },
     "evening_checklist_header": {
-        "hindi": "🌙 शाम हो गई! आज जो पूरा किया उसे टिक करो:",
-        "english": "🌙 Evening check-in! Tick off what you completed today:",
-        "hinglish": "🌙 Sham ho gayi! Aaj jo complete kiya wo tick kar de:",
+        "hindi": "🌙 शाम हो गई! आज जो पूरा किया है उसे टिक कर दीजिए:",
+        "english": "🌙 Evening check-in! Please tick off what you completed today:",
+        "hinglish": "🌙 Shaam ho gayi! Aaj jo complete kiya hai use tick kar dijiye:",
     },
     "no_topics_left": {
-        "hindi": "वाह! आपके सिलेबस के सारे टॉपिक कवर हो गए 🎉 नया सिलेबस जोड़ने के लिए /addsyllabus टाइप करो।",
-        "english": "Wow! You've covered your entire syllabus 🎉 Type /addsyllabus to add more topics.",
-        "hinglish": "Wah! Tera pura syllabus cover ho gaya 🎉 Naya syllabus add karne ke liye /addsyllabus type kar.",
+        "hindi": "बधाई हो! आपके सिलेबस के सारे टॉपिक कवर हो गए 🎉 नया सिलेबस जोड़ने के लिए /addsyllabus टाइप कीजिए।",
+        "english": "Congratulations! You've covered your entire syllabus 🎉 Type /addsyllabus to add more topics.",
+        "hinglish": "Badhai ho! Aapka poora syllabus cover ho gaya 🎉 Naya syllabus add karne ke liye /addsyllabus type kijiye.",
     },
     "progress_saved": {
         "hindi": "प्रोग्रेस सेव हो गया! कल फिर मिलते हैं 💪",
         "english": "Progress saved! See you tomorrow 💪",
-        "hinglish": "Progress save ho gaya! Kal milte hai 💪",
+        "hinglish": "Progress save ho gaya! Kal phir milte hain 💪",
     },
     "progress_header": {
         "hindi": "📊 {name} की प्रोग्रेस रिपोर्ट\n\n🔥 स्ट्रीक: {streak} दिन (सबसे लंबी: {longest})\n",
         "english": "📊 {name}'s Progress Report\n\n🔥 Streak: {streak} days (longest: {longest})\n",
-        "hinglish": "📊 {name} ki Progress Report\n\n🔥 Streak: {streak} din (longest: {longest})\n",
+        "hinglish": "📊 {name} ki Progress Report\n\n🔥 Streak: {streak} din (sabse lambi: {longest})\n",
     },
     "ask_question_pdf": {
-        "hindi": "जिस PDF से questions निकालने हैं वो भेज दो (MCQ format वाली — options a,b,c,d के साथ)।",
-        "english": "Send the PDF you want questions extracted from (MCQ format — with a,b,c,d options).",
-        "hinglish": "Jis PDF se questions nikalne hai wo bhej de (MCQ format wali — options a,b,c,d ke saath).",
+        "hindi": "जिस PDF से questions निकालने हैं वो भेज दीजिए (MCQ फॉर्मेट में — options a, b, c, d के साथ)।",
+        "english": "Please send the PDF you'd like questions extracted from (MCQ format — with a, b, c, d options).",
+        "hinglish": "Jis PDF se questions nikalne hain wo bhej dijiye (MCQ format mein — options a, b, c, d ke saath).",
     },
     "extracting_in_progress": {
-        "hindi": "PDF प्रोसेस हो रही है, थोड़ा रुको... ⏳",
-        "english": "Processing your PDF, hang on... ⏳",
-        "hinglish": "PDF process ho rahi hai, thoda ruk... ⏳",
+        "hindi": "PDF प्रोसेस हो रही है, कृपया थोड़ा प्रतीक्षा कीजिए... ⏳",
+        "english": "Processing your PDF, please hold on a moment... ⏳",
+        "hinglish": "PDF process ho rahi hai, kripya thoda intezaar kijiye... ⏳",
     },
     "no_questions_found": {
-        "hindi": "माफ़ करना, इस PDF में मुझे कोई पहचाने जाने लायक MCQ फॉर्मेट नहीं मिला। सुनिश्चित करो कि questions 'Q1.' या '1)' जैसे शुरू हो और options (a)(b)(c)(d) फॉर्मेट में हो।",
-        "english": "Sorry, I couldn't detect any recognizable MCQ format in this PDF. Make sure questions start like 'Q1.' or '1)' and options are in (a)(b)(c)(d) format.",
-        "hinglish": "Sorry, is PDF me mujhe koi pehchana jaane layak MCQ format nahi mila. Check kar ki questions 'Q1.' ya '1)' se start ho aur options (a)(b)(c)(d) format me ho.",
+        "hindi": "क्षमा कीजिए, इस PDF में कोई पहचाने जाने लायक MCQ फॉर्मेट नहीं मिला। सुनिश्चित कीजिए कि questions 'Q1.' या '1)' जैसे शुरू हों और options (a)(b)(c)(d) फॉर्मेट में हों।",
+        "english": "Sorry, I couldn't detect a recognizable MCQ format in this PDF. Please make sure questions start like 'Q1.' or '1)' and options follow the (a)(b)(c)(d) format.",
+        "hinglish": "Maaf kijiye, is PDF mein koi pehchana jaane layak MCQ format nahi mila. Kripya check karein ki questions 'Q1.' ya '1)' se start hon aur options (a)(b)(c)(d) format mein hon.",
     },
     "extraction_done": {
-        "hindi": "हो गया! {count} questions मिले, PDF में साफ़-सुथरे तरीके से लगा दिए हैं (आखिरी पेज पर answer key भी है) ✅",
-        "english": "Done! Found {count} questions, cleanly formatted into a PDF (answer key on the last page too) ✅",
-        "hinglish": "Ho gaya! {count} questions mile, PDF me clean format kar diya hai (last page pe answer key bhi hai) ✅",
+        "hindi": "हो गया! {count} questions मिले, PDF में साफ़-सुथरे तरीके से व्यवस्थित कर दिए हैं (आख़िरी पेज पर answer key भी है) ✅",
+        "english": "Done! Found {count} questions, neatly formatted into a PDF (with an answer key on the last page) ✅",
+        "hinglish": "Ho gaya! {count} questions mile, PDF mein clean tareeke se organize kar diya hai (last page par answer key bhi hai) ✅",
     },
     "no_streak_yet": {
-        "hindi": "अभी तक कोई स्ट्रीक शुरू नहीं हुई। आज पहला टॉपिक पूरा करके शुरू करो!",
-        "english": "No streak started yet. Complete your first topic today to begin!",
-        "hinglish": "Abhi tak koi streak start nahi hui. Aaj pehla topic complete karke shuru kar!",
+        "hindi": "अभी तक कोई स्ट्रीक शुरू नहीं हुई है। आज पहला टॉपिक पूरा करके शुरुआत कीजिए!",
+        "english": "No streak started yet. Complete your first topic today to get going!",
+        "hinglish": "Abhi tak koi streak start nahi hui hai. Aaj pehla topic complete karke shuruaat kijiye!",
     },
     "setup_done": {
-        "hindi": "सेटअप पूरा हो गया! ✅ अब रोज सुबह {time} बजे आपको प्लान मिलेगा।",
-        "english": "Setup complete! ✅ You'll get your daily plan at {time} every morning.",
-        "hinglish": "Setup ho gaya! ✅ Roz subah {time} baje tujhe plan milega.",
+        "hindi": "सेटअप पूरा हो गया! ✅ अब रोज़ सुबह {time} बजे आपको प्लान मिलेगा।",
+        "english": "Setup complete! ✅ You'll receive your daily plan at {time} every morning.",
+        "hinglish": "Setup poora ho gaya! ✅ Ab roz subah {time} baje aapko plan milega.",
     },
     "invalid_number": {
-        "hindi": "कृपया सिर्फ नंबर भेजो।",
+        "hindi": "कृपया केवल नंबर भेजिए।",
         "english": "Please send only a number.",
-        "hinglish": "Please sirf number bhej.",
+        "hinglish": "Kripya sirf number bhejiye.",
     },
     "invalid_time": {
-        "hindi": "सही फॉर्मेट में भेजो, जैसे 07:00",
-        "english": "Send it in correct format, e.g. 07:00",
-        "hinglish": "Sahi format me bhej, jaise 07:00",
+        "hindi": "कृपया सही फॉर्मेट में भेजिए, जैसे 07:00",
+        "english": "Please send it in the correct format, e.g. 07:00",
+        "hinglish": "Kripya sahi format mein bhejiye, jaise 07:00",
+    },
+
+    # ---- Per-task reminder feature ----
+    "addreminder_usage": {
+        "hindi": "इस तरह इस्तेमाल कीजिए: /addreminder HH:MM\nउदाहरण: /addreminder 14:30\n\nहर टाइम स्लॉट पर मैं आपको एक नया टॉपिक भेजूंगा, पूरा होने पर तुरंत टिक कर सकते हैं।",
+        "english": "Use it like this: /addreminder HH:MM\nExample: /addreminder 14:30\n\nAt each time slot, I'll send you one new topic — you can mark it done right away once completed.",
+        "hinglish": "Is tarah use kijiye: /addreminder HH:MM\nExample: /addreminder 14:30\n\nHar time slot par main aapko ek naya topic bhejunga, complete hone par turant tick kar sakte hain.",
+    },
+    "reminder_added": {
+        "hindi": "बढ़िया! {time} बजे का रिमाइंडर जुड़ गया है। इस समय आपको अगला टॉपिक मिलेगा।",
+        "english": "Great! A reminder at {time} has been added. You'll receive your next topic at that time.",
+        "hinglish": "Badhiya! {time} baje ka reminder add ho gaya hai. Is time par aapko agla topic milega.",
+    },
+    "reminder_removed": {
+        "hindi": "{time} बजे का रिमाइंडर हटा दिया गया है।",
+        "english": "The reminder at {time} has been removed.",
+        "hinglish": "{time} baje ka reminder remove kar diya gaya hai.",
+    },
+    "reminder_not_found": {
+        "hindi": "इस समय पर कोई रिमाइंडर सेट नहीं मिला। /myreminders से लिस्ट देखिए।",
+        "english": "No reminder found at that time. Use /myreminders to see your current list.",
+        "hinglish": "Is time par koi reminder set nahi mila. /myreminders se current list dekhiye.",
+    },
+    "reminder_list_header": {
+        "hindi": "⏰ आपके एक्टिव टास्क रिमाइंडर:\n",
+        "english": "⏰ Your active task reminders:\n",
+        "hinglish": "⏰ Aapke active task reminders:\n",
+    },
+    "reminder_list_empty": {
+        "hindi": "अभी तक कोई टास्क रिमाइंडर सेट नहीं है। /addreminder HH:MM से जोड़िए।",
+        "english": "No task reminders set yet. Add one using /addreminder HH:MM.",
+        "hinglish": "Abhi tak koi task reminder set nahi hai. /addreminder HH:MM se add kijiye.",
+    },
+    "task_reminder_header": {
+        "hindi": "📖 पढ़ाई का समय हो गया, {name}! अभी इस टॉपिक पर फोकस कीजिए:",
+        "english": "📖 Time to study, {name}! Please focus on this topic now:",
+        "hinglish": "📖 Study karne ka time ho gaya hai, {name}! Abhi is topic par focus kijiye:",
+    },
+    "task_all_done_today": {
+        "hindi": "शानदार! आज के सारे टॉपिक कवर हो चुके हैं 🎉 कल फिर मिलते हैं।",
+        "english": "Excellent! All of today's topics are covered 🎉 See you tomorrow.",
+        "hinglish": "Shaandaar! Aaj ke saare topics cover ho chuke hain 🎉 Kal phir milte hain.",
+    },
+    "mark_done_button": {
+        "hindi": "✅ पूरा हुआ",
+        "english": "✅ Mark as Done",
+        "hinglish": "✅ Complete Kiya",
+    },
+    "task_marked_done": {
+        "hindi": "शाबाश, {name}! यह टॉपिक पूरा दर्ज हो गया है। अगला टास्क अगले रिमाइंडर पर मिलेगा।",
+        "english": "Well done, {name}! This topic has been marked complete. Your next task will arrive at the next reminder.",
+        "hinglish": "Shaabaash, {name}! Yeh topic complete mark ho gaya hai. Agla task agle reminder par milega.",
+    },
+    "help_text": {
+        "hindi": (
+            "🤖 *Study Sync — कमांड गाइड*\n\n"
+            "*/start* — बॉट सेटअप करें (भाषा, नाम, एग्ज़ाम, सिलेबस)\n"
+            "*/progress* — विषय-वार प्रगति और स्ट्रीक देखें\n"
+            "*/pdf* (या /extractquestions) — किसी PDF से MCQ questions निकालकर साफ़-सुथरी PDF बनवाएं\n"
+            "*/addreminder HH:MM* — दिन में कोई भी नया टास्क रिमाइंडर जोड़ें\n"
+            "*/removereminder HH:MM* — कोई रिमाइंडर हटाएं\n"
+            "*/myreminders* — अपने सभी एक्टिव रिमाइंडर देखें\n"
+            "*/help* — यह गाइड फिर से देखें\n\n"
+            "📌 *बॉट कैसे काम करता है:*\n"
+            "• रोज़ सुबह आपको सिलेबस से एक स्टडी प्लान मिलेगा, शाम को उसका चेकलिस्ट\n"
+            "• चाहें तो /addreminder से दिन में और भी रिमाइंडर सेट करें — हर एक पर एक नया टॉपिक मिलेगा, तुरंत टिक कर सकते हैं\n"
+            "• जब चाहें /progress से देखें कितना सिलेबस कवर हो चुका है\n"
+            "• पुराने पेपर/नोट्स की PDF भेजकर questions अलग निकलवा सकते हैं"
+        ),
+        "english": (
+            "🤖 *Study Sync — Command Guide*\n\n"
+            "*/start* — Set up the bot (language, name, exam, syllabus)\n"
+            "*/progress* — View subject-wise progress and your streak\n"
+            "*/pdf* (or /extractquestions) — Extract MCQ questions from a PDF into a clean, formatted PDF\n"
+            "*/addreminder HH:MM* — Add a new task reminder at any time of day\n"
+            "*/removereminder HH:MM* — Remove a reminder\n"
+            "*/myreminders* — View all your active reminders\n"
+            "*/help* — Show this guide again\n\n"
+            "📌 *How the bot works:*\n"
+            "• Every morning you get a study plan from your syllabus, and an evening checklist for it\n"
+            "• Optionally add more reminders during the day with /addreminder — each one delivers a fresh topic you can mark done instantly\n"
+            "• Check /progress anytime to see how much of your syllabus is covered\n"
+            "• Send a PDF of practice papers/notes to extract clean, standalone questions"
+        ),
+        "hinglish": (
+            "🤖 *Study Sync — Command Guide*\n\n"
+            "*/start* — Bot setup kijiye (language, naam, exam, syllabus)\n"
+            "*/progress* — Subject-wise progress aur apni streak dekhiye\n"
+            "*/pdf* (ya /extractquestions) — Kisi PDF se MCQ questions nikaal kar clean, formatted PDF banwaiye\n"
+            "*/addreminder HH:MM* — Din mein kabhi bhi ek naya task reminder add kijiye\n"
+            "*/removereminder HH:MM* — Koi reminder hataiye\n"
+            "*/myreminders* — Apne saare active reminders dekhiye\n"
+            "*/help* — Yeh guide dobara dekhiye\n\n"
+            "📌 *Bot kaise kaam karta hai:*\n"
+            "• Roz subah aapko syllabus se ek study plan milega, aur shaam ko uska checklist\n"
+            "• Chahen to /addreminder se din mein aur reminders set kijiye — har ek par ek naya topic milega, turant tick kar sakte hain\n"
+            "• Jab chahe /progress se dekhiye kitna syllabus cover ho chuka hai\n"
+            "• Purane papers/notes ki PDF bhej kar usse questions alag nikalwa sakte hain"
+        ),
     },
 }
 
