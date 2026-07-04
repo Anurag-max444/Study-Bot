@@ -164,6 +164,88 @@ TEXT = {
         "english": "Well done, {name}! This topic has been marked complete. Your next task will arrive at the next reminder.",
         "hinglish": "Shaabaash, {name}! Yeh topic complete mark ho gaya hai. Agla task agle reminder par milega.",
     },
+
+    # ---- Custom task scheduling (time + topic + duration) ----
+    "ask_task_time": {
+        "hindi": "किस समय पढ़ाई शुरू करनी है? (24hr फॉर्मेट, जैसे 18:00)",
+        "english": "What time should this study session start? (24hr format, e.g. 18:00)",
+        "hinglish": "Kis time study session start karna hai? (24hr format, jaise 18:00)",
+    },
+    "ask_task_topic": {
+        "hindi": "किस टॉपिक पर पढ़ाई करनी है? (जो चाहें लिखें, जैसे 'Percentage Revision')",
+        "english": "What topic would you like to study? (write anything, e.g. 'Percentage Revision')",
+        "hinglish": "Kis topic par study karni hai? (jo chahen likhein, jaise 'Percentage Revision')",
+    },
+    "ask_task_duration": {
+        "hindi": "कितनी देर पढ़ेंगे? (जैसे 1h, 90m, या 1.5h)",
+        "english": "How long will you study for? (e.g. 1h, 90m, or 1.5h)",
+        "hinglish": "Kitni der padhenge? (jaise 1h, 90m, ya 1.5h)",
+    },
+    "invalid_duration": {
+        "hindi": "कृपया सही फॉर्मेट में भेजिए — जैसे 1h, 90m, या 1.5h",
+        "english": "Please send it in a valid format — e.g. 1h, 90m, or 1.5h",
+        "hinglish": "Kripya sahi format mein bhejiye — jaise 1h, 90m, ya 1.5h",
+    },
+    "task_scheduled": {
+        "hindi": "बढ़िया! {time} बजे '{topic}' के लिए {duration} मिनट का सेशन सेट हो गया है। ✅",
+        "english": "Great! A {duration}-minute session for '{topic}' is scheduled at {time}. ✅",
+        "hinglish": "Badhiya! {time} baje '{topic}' ke liye {duration} minute ka session set ho gaya hai. ✅",
+    },
+    "mytopics_header": {
+        "hindi": "📋 आपके शेड्यूल्ड टॉपिक:\n",
+        "english": "📋 Your scheduled topics:\n",
+        "hinglish": "📋 Aapke scheduled topics:\n",
+    },
+    "mytopics_empty": {
+        "hindi": "अभी तक कोई टॉपिक शेड्यूल नहीं है। /addtask से जोड़िए।",
+        "english": "No topics scheduled yet. Add one with /addtask.",
+        "hinglish": "Abhi tak koi topic schedule nahi hai. /addtask se add kijiye.",
+    },
+    "task_removed": {
+        "hindi": "{time} बजे का टास्क हटा दिया गया है।",
+        "english": "The task at {time} has been removed.",
+        "hinglish": "{time} baje ka task remove kar diya gaya hai.",
+    },
+    "task_not_found": {
+        "hindi": "इस समय पर कोई टास्क नहीं मिला। /mytopics से लिस्ट देखिए।",
+        "english": "No task found at that time. Use /mytopics to see your list.",
+        "hinglish": "Is time par koi task nahi mila. /mytopics se list dekhiye.",
+    },
+    "task_session_start": {
+        "hindi": "📖 समय हो गया, {name}! अभी शुरू कीजिए:\n\n📌 *{topic}*\n⏱ {duration} मिनट के लिए\n\nमैं {duration} मिनट बाद पूछूंगा कि पूरा हुआ या नहीं।",
+        "english": "📖 Time to begin, {name}!\n\n📌 *{topic}*\n⏱ For {duration} minutes\n\nI'll check back in {duration} minutes to see if you're done.",
+        "hinglish": "📖 Time ho gaya hai, {name}! Abhi shuru kijiye:\n\n📌 *{topic}*\n⏱ {duration} minute ke liye\n\nMain {duration} minute baad puchunga ki poora hua ya nahi.",
+    },
+    "task_session_followup": {
+        "hindi": "⏰ समय पूरा हो गया! क्या आपने '{topic}' पूरा कर लिया?",
+        "english": "⏰ Time's up! Did you finish '{topic}'?",
+        "hinglish": "⏰ Time poora ho gaya! Kya aapne '{topic}' poora kar liya?",
+    },
+    "session_done_button": {
+        "hindi": "✅ हां, पूरा हुआ",
+        "english": "✅ Yes, done",
+        "hinglish": "✅ Haan, poora hua",
+    },
+    "session_marked_done": {
+        "hindi": "शानदार, {name}! '{topic}' आपके स्टडी लॉग में दर्ज हो गया है। 💪",
+        "english": "Excellent, {name}! '{topic}' has been logged in your study record. 💪",
+        "hinglish": "Shaandaar, {name}! '{topic}' aapke study log mein record ho gaya hai. 💪",
+    },
+    "studylog_header": {
+        "hindi": "📊 पिछले {days} दिन का स्टडी लॉग\n\n",
+        "english": "📊 Study log — last {days} days\n\n",
+        "hinglish": "📊 Pichhle {days} din ka study log\n\n",
+    },
+    "studylog_empty": {
+        "hindi": "अभी तक कोई सेशन दर्ज नहीं हुआ। /addtask से एक टॉपिक शेड्यूल कीजिए।",
+        "english": "No sessions logged yet. Schedule a topic with /addtask.",
+        "hinglish": "Abhi tak koi session record nahi hua. /addtask se ek topic schedule kijiye.",
+    },
+    "studylog_total": {
+        "hindi": "\n📌 कुल पूर्ण समय: {hours} घंटे",
+        "english": "\n📌 Total completed time: {hours} hours",
+        "hinglish": "\n📌 Total complete kiya hua time: {hours} ghante",
+    },
     "help_text": {
         "hindi": (
             "🤖 *Study Sync — कमांड गाइड*\n\n"
@@ -173,6 +255,10 @@ TEXT = {
             "*/addreminder HH:MM* — दिन में कोई भी नया टास्क रिमाइंडर जोड़ें\n"
             "*/removereminder HH:MM* — कोई रिमाइंडर हटाएं\n"
             "*/myreminders* — अपने सभी एक्टिव रिमाइंडर देखें\n"
+            "*/addtask* — खुद का टॉपिक + समय + अवधि सेट करें (जैसे टाइमटेबल)\n"
+            "*/mytopics* — अपने शेड्यूल्ड टॉपिक देखें\n"
+            "*/removetask HH:MM* — कोई शेड्यूल्ड टॉपिक हटाएं\n"
+            "*/studylog* — पिछले 7 दिन का पढ़ाई का रिकॉर्ड देखें (कितने घंटे, कौन से टॉपिक)\n"
             "*/help* — यह गाइड फिर से देखें\n\n"
             "📌 *बॉट कैसे काम करता है:*\n"
             "• रोज़ सुबह आपको सिलेबस से एक स्टडी प्लान मिलेगा, शाम को उसका चेकलिस्ट\n"
@@ -188,6 +274,10 @@ TEXT = {
             "*/addreminder HH:MM* — Add a new task reminder at any time of day\n"
             "*/removereminder HH:MM* — Remove a reminder\n"
             "*/myreminders* — View all your active reminders\n"
+            "*/addtask* — Set your own topic + time + duration (like a timetable entry)\n"
+            "*/mytopics* — View your scheduled topics\n"
+            "*/removetask HH:MM* — Remove a scheduled topic\n"
+            "*/studylog* — View your last 7 days of study history (hours studied, topics covered)\n"
             "*/help* — Show this guide again\n\n"
             "📌 *How the bot works:*\n"
             "• Every morning you get a study plan from your syllabus, and an evening checklist for it\n"
@@ -203,6 +293,10 @@ TEXT = {
             "*/addreminder HH:MM* — Din mein kabhi bhi ek naya task reminder add kijiye\n"
             "*/removereminder HH:MM* — Koi reminder hataiye\n"
             "*/myreminders* — Apne saare active reminders dekhiye\n"
+            "*/addtask* — Apna khud ka topic + time + duration set kijiye (timetable jaisa)\n"
+            "*/mytopics* — Apne scheduled topics dekhiye\n"
+            "*/removetask HH:MM* — Koi scheduled topic hataiye\n"
+            "*/studylog* — Pichhle 7 din ka padhai ka record dekhiye (kitne ghante, kaunse topics)\n"
             "*/help* — Yeh guide dobara dekhiye\n\n"
             "📌 *Bot kaise kaam karta hai:*\n"
             "• Roz subah aapko syllabus se ek study plan milega, aur shaam ko uska checklist\n"

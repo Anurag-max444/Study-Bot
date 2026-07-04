@@ -79,8 +79,14 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await start(update, context)
         return
 
-    step = user["onboarding_step"]
     lang = user["language"]
+
+    # Custom task scheduling flow (triggered by /addtask) takes priority
+    if context.user_data.get("task_flow"):
+        await handle_task_flow_text(update, context, user)
+        return
+
+    step = user["onboarding_step"]
     text = update.message.text.strip()
 
     if step == "ask_name":
@@ -281,13 +287,24 @@ async def extractquestions_command(update: Update, context: ContextTypes.DEFAULT
 
 async def handle_question_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE, user):
     import pdfplumber
+    from telegram.error import BadRequest
     from question_extractor import extract_questions_from_text, generate_questions_pdf
 
     user_id = user["id"]
     lang = user["language"]
     context.user_data["awaiting_question_pdf"] = False
 
-    await update.message.reply_text(t("extracting_in_progress", lang))
+    def _bar(pct):
+        filled = pct // 10
+        return "▓" * filled + "░" * (10 - filled)
+
+    status_msg = await update.message.reply_text(f"{t('extracting_in_progress', lang)}\n[{_bar(0)}] 0%")
+
+    async def _update_progress(text, pct):
+        try:
+            await status_msg.edit_text(f"{text}\n[{_bar(pct)}] {pct}%")
+        except BadRequest:
+            pass  # ignore "message not modified" when % hasn't changed
 
     in_path = f"/tmp/{user_id}_qsource.pdf"
     file = await update.message.document.get_file()
@@ -295,17 +312,24 @@ async def handle_question_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     full_text = ""
     with pdfplumber.open(in_path) as pdf:
-        for page in pdf.pages:
+        total_pages = len(pdf.pages) or 1
+        for i, page in enumerate(pdf.pages, start=1):
             full_text += (page.extract_text() or "") + "\n"
+            pct = int((i / total_pages) * 70)
+            await _update_progress(f"📄 Reading page {i}/{total_pages}...", pct)
 
+    await _update_progress("🔍 Parsing questions...", 80)
     questions = extract_questions_from_text(full_text)
 
     if not questions:
-        await update.message.reply_text(t("no_questions_found", lang))
+        await status_msg.edit_text(t("no_questions_found", lang))
         return
 
+    await _update_progress("📝 Formatting PDF...", 95)
     out_path = f"/tmp/{user_id}_questions_output.pdf"
     generate_questions_pdf(questions, out_path, title="Extracted Questions")
+
+    await status_msg.edit_text(f"✅ Done!\n[{_bar(100)}] 100%")
 
     with open(out_path, "rb") as f:
         await update.message.reply_document(
@@ -441,6 +465,191 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(t("help_text", lang), parse_mode="Markdown")
 
 
+def _parse_duration_to_minutes(text: str):
+    """Parses '1h', '90m', '1.5h', '45' into minutes (int). Returns None if invalid."""
+    text = text.strip().lower()
+    try:
+        if text.endswith("h"):
+            return round(float(text[:-1]) * 60)
+        if text.endswith("m"):
+            return int(float(text[:-1]))
+        if text.isdigit():
+            return int(text)
+    except ValueError:
+        return None
+    return None
+
+
+async def addtask_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    if not user:
+        await start(update, context)
+        return
+
+    lang = user["language"]
+    context.user_data["task_flow"] = {"step": "time"}
+    await update.message.reply_text(t("ask_task_time", lang))
+
+
+async def handle_task_flow_text(update: Update, context: ContextTypes.DEFAULT_TYPE, user):
+    lang = user["language"]
+    text = update.message.text.strip()
+    flow = context.user_data["task_flow"]
+
+    if flow["step"] == "time":
+        if not (len(text) == 5 and text[2] == ":" and text.replace(":", "").isdigit()):
+            await update.message.reply_text(t("invalid_time", lang))
+            return
+        flow["time"] = text
+        flow["step"] = "topic"
+        await update.message.reply_text(t("ask_task_topic", lang))
+        return
+
+    if flow["step"] == "topic":
+        flow["topic"] = text
+        flow["step"] = "duration"
+        await update.message.reply_text(t("ask_task_duration", lang))
+        return
+
+    if flow["step"] == "duration":
+        minutes = _parse_duration_to_minutes(text)
+        if not minutes or minutes <= 0:
+            await update.message.reply_text(t("invalid_duration", lang))
+            return
+
+        db.add_custom_task(user["id"], flow["time"], flow["topic"], minutes)
+        await update.message.reply_text(
+            t("task_scheduled", lang, time=flow["time"], topic=flow["topic"], duration=minutes)
+        )
+        del context.user_data["task_flow"]
+        return
+
+
+async def mytopics_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    if not user:
+        await start(update, context)
+        return
+
+    lang = user["language"]
+    tasks = db.get_custom_tasks(user_id)
+    if not tasks:
+        await update.message.reply_text(t("mytopics_empty", lang))
+        return
+
+    msg = t("mytopics_header", lang)
+    msg += "\n".join(f"⏰ {task['time']} — {task['topic']} ({task['duration_minutes']} min)" for task in tasks)
+    await update.message.reply_text(msg)
+
+
+async def removetask_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    if not user:
+        await start(update, context)
+        return
+
+    lang = user["language"]
+    if not context.args or len(context.args) != 1:
+        await update.message.reply_text(t("invalid_time", lang))
+        return
+
+    time_str = context.args[0].strip()
+    removed = db.remove_custom_task(user_id, time_str)
+    if removed:
+        await update.message.reply_text(t("task_removed", lang, time=time_str))
+    else:
+        await update.message.reply_text(t("task_not_found", lang))
+
+
+async def studylog_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    if not user:
+        await start(update, context)
+        return
+
+    lang = user["language"]
+    sessions = db.get_study_log(user_id, days=7)
+    if not sessions:
+        await update.message.reply_text(t("studylog_empty", lang))
+        return
+
+    msg = t("studylog_header", lang, days=7)
+    total_minutes = 0
+    for s in sessions:
+        mark = "✅" if s["completed"] else "⏳"
+        msg += f"{mark} {s['session_date']} — {s['topic_snapshot']} ({s['duration_minutes']} min)\n"
+        if s["completed"]:
+            total_minutes += s["duration_minutes"]
+
+    msg += t("studylog_total", lang, hours=round(total_minutes / 60, 1))
+    await update.message.reply_text(msg)
+
+
+async def send_custom_task_start(context: ContextTypes.DEFAULT_TYPE):
+    """Runs every minute. Starts any custom task whose time matches now, schedules a follow-up."""
+    now_str = datetime.now().strftime("%H:%M")
+    today_str = datetime.now().strftime("%Y-%m-%d")
+
+    rows = db.get_users_with_custom_task_at(now_str)
+    for row in rows:
+        user = row.get("users")
+        if not user or user.get("onboarding_step") != "done":
+            continue
+
+        lang = user["language"]
+        session, is_new = db.create_task_session(
+            user["id"], row["id"], today_str, row["topic"], row["duration_minutes"]
+        )
+        if not is_new or not session:
+            continue  # already started today, avoid duplicate reminders
+
+        await context.bot.send_message(
+            user["id"],
+            t("task_session_start", lang, name=user["name"] or "", topic=row["topic"], duration=row["duration_minutes"]),
+            parse_mode="Markdown",
+        )
+
+        context.job_queue.run_once(
+            send_task_followup,
+            when=row["duration_minutes"] * 60,
+            data={"session_id": session["id"], "user_id": user["id"], "lang": lang, "topic": row["topic"]},
+        )
+
+
+async def send_task_followup(context: ContextTypes.DEFAULT_TYPE):
+    data = context.job.data
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton(t("session_done_button", data["lang"]), callback_data=f"sessiondone_{data['session_id']}")]
+    ])
+    await context.bot.send_message(
+        data["user_id"],
+        t("task_session_followup", data["lang"], topic=data["topic"]),
+        reply_markup=keyboard,
+    )
+
+
+async def mark_session_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    user_id = query.from_user.id
+    user = db.get_user(user_id)
+    lang = user["language"] if user else "hinglish"
+
+    session_id = int(query.data.replace("sessiondone_", ""))
+    db.mark_session_completed(session_id)
+    session = db.get_session(session_id)
+    topic = session["topic_snapshot"] if session else ""
+
+    await query.edit_message_text(query.message.text + "\n\n✅")
+    await context.bot.send_message(
+        user_id, t("session_marked_done", lang, name=user["name"] or "", topic=topic)
+    )
+
+
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
@@ -452,17 +661,23 @@ def main():
     app.add_handler(CommandHandler("addreminder", addreminder_command))
     app.add_handler(CommandHandler("removereminder", removereminder_command))
     app.add_handler(CommandHandler("myreminders", myreminders_command))
+    app.add_handler(CommandHandler("addtask", addtask_command))
+    app.add_handler(CommandHandler("mytopics", mytopics_command))
+    app.add_handler(CommandHandler("removetask", removetask_command))
+    app.add_handler(CommandHandler("studylog", studylog_command))
     app.add_handler(CallbackQueryHandler(language_chosen, pattern="^lang_"))
     app.add_handler(CallbackQueryHandler(exam_chosen, pattern="^exam_"))
     app.add_handler(MessageHandler(filters.Document.PDF, handle_pdf))
     app.add_handler(CallbackQueryHandler(toggle_checklist_item, pattern="^toggle_"))
     app.add_handler(CallbackQueryHandler(mark_task_done, pattern="^donetask_"))
+    app.add_handler(CallbackQueryHandler(mark_session_done, pattern="^sessiondone_"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
     # Har minute check karo ki kisi user ka reminder time ab hua hai kya
     app.job_queue.run_repeating(send_morning_plan, interval=60, first=5)
     app.job_queue.run_repeating(send_evening_checklist, interval=60, first=5)
     app.job_queue.run_repeating(send_task_reminders, interval=60, first=5)
+    app.job_queue.run_repeating(send_custom_task_start, interval=60, first=5)
 
     # Render free Web Service ko port pe response chahiye, warna spin-down/fail ho jata hai.
     # Ye background thread mein ek chhota HTTP server chalata hai jise UptimeRobot ping kar sake.

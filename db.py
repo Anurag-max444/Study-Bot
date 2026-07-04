@@ -166,6 +166,93 @@ def toggle_plan_item(plan_id: int, completed: bool, today_str: str = None):
                 update_streak_on_completion(plan.data[0]["user_id"], today_str)
 
 
+# ---- Custom scheduled tasks (user-defined topic + time + duration) ----
+
+def add_custom_task(user_id: int, time_str: str, topic: str, duration_minutes: int):
+    res = supabase.table("custom_tasks").insert({
+        "user_id": user_id, "time": time_str, "topic": topic, "duration_minutes": duration_minutes,
+    }).execute()
+    return res.data[0] if res.data else None
+
+
+def get_custom_tasks(user_id: int):
+    res = (
+        supabase.table("custom_tasks")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("time")
+        .execute()
+    )
+    return res.data
+
+
+def remove_custom_task(user_id: int, time_str: str):
+    res = (
+        supabase.table("custom_tasks")
+        .delete()
+        .eq("user_id", user_id)
+        .eq("time", time_str)
+        .execute()
+    )
+    return bool(res.data)
+
+
+def get_users_with_custom_task_at(time_str: str):
+    res = (
+        supabase.table("custom_tasks")
+        .select("*, users(*)")
+        .eq("time", time_str)
+        .execute()
+    )
+    return res.data
+
+
+def create_task_session(user_id: int, custom_task_id: int, session_date: str, topic: str, duration_minutes: int):
+    """Idempotent — won't duplicate if a session already exists today for this task."""
+    existing = (
+        supabase.table("task_sessions")
+        .select("*")
+        .eq("custom_task_id", custom_task_id)
+        .eq("session_date", session_date)
+        .execute()
+    )
+    if existing.data:
+        return existing.data[0], False  # already existed
+
+    res = supabase.table("task_sessions").insert({
+        "user_id": user_id, "custom_task_id": custom_task_id, "session_date": session_date,
+        "topic_snapshot": topic, "duration_minutes": duration_minutes,
+    }).execute()
+    return (res.data[0] if res.data else None), True
+
+
+def mark_session_completed(session_id: int):
+    from datetime import datetime as _dt
+    supabase.table("task_sessions").update({
+        "completed": True, "completed_at": _dt.now().isoformat(),
+    }).eq("id", session_id).execute()
+
+
+def get_session(session_id: int):
+    res = supabase.table("task_sessions").select("*").eq("id", session_id).execute()
+    return res.data[0] if res.data else None
+
+
+def get_study_log(user_id: int, days: int = 7):
+    """Returns sessions from the last `days` days, most recent first."""
+    from datetime import date, timedelta
+    since = (date.today() - timedelta(days=days)).isoformat()
+    res = (
+        supabase.table("task_sessions")
+        .select("*")
+        .eq("user_id", user_id)
+        .gte("session_date", since)
+        .order("session_date", desc=True)
+        .execute()
+    )
+    return res.data
+
+
 # ---- Per-task reminder slots (multiple reminders/day, one topic each) ----
 
 def add_reminder_slot(user_id: int, time_str: str):
