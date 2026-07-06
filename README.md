@@ -185,3 +185,28 @@ Ye dono Google ke free, open-source Noto fonts hai (SIL Open Font License — bi
 - `/addsyllabus` command — naye topics manually add karne ke liye
 - Mock test mode — extracted questions se hi ek timer-based quiz bana sakte ho
 - Weak topic detector — jo topics baar-baar skip hote hai unko priority dena
+
+## Phase 8 — Streak Shield + Achievement Badges (gamification)
+
+Padhai me consistency banaye rakhne ke liye ek fun, Duolingo-jaisa gamification layer add kiya hai.
+
+### 🛡️ Streak Shield
+- Har 7-din ki streak pe ek **shield** milta hai (max 3 store ho sakti hai)
+- Agar koi din miss ho jaye, aur shield available ho, to wo automatically use ho jati hai aur **streak toot ti nahi**
+- `/progress` me dikhta hai kitni shields available hai
+
+### 🎖️ Achievement Badges
+8 badges hai jo alag-alag milestones pe unlock hote hai:
+- 🔥 Week Warrior (7-day streak)
+- 🌟 Monthly Master (30-day streak)
+- 📘 Getting Started (10 topics complete)
+- 📚 Half Century (50 topics complete)
+- 🏅 Century Club (100 topics complete)
+- 🦉 Night Owl (raat 10 baje ke baad padhai complete ki)
+- 🐦 Early Bird (subah 7 baje se pehle padhai complete ki)
+- 🛡️ Shield Saver (pehli baar shield use hui)
+
+Jab bhi koi naya badge unlock hota hai, bot turant ek celebration message bhejta hai. **`/badges`** command se sab dekh sakte ho — kaunse unlock ho chuke hai, kaunse abhi lock hai.
+
+### Setup ke liye
+Supabase SQL Editor me `migration_phase8_gamification.sql` run karo.

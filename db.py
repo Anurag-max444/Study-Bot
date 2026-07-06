@@ -112,35 +112,139 @@ def get_streak(user_id: int):
     return res.data[0] if res.data else None
 
 
-def update_streak_on_completion(user_id: int, today_str: str):
-    """Call this when user marks at least one topic done today."""
+def update_streak_on_completion(user_id: int, today_str: str) -> bool:
+    """Call this when user marks at least one topic done today. Returns True if a shield was consumed."""
     from datetime import date, timedelta
 
     streak = get_streak(user_id)
     today = date.fromisoformat(today_str)
     yesterday_str = (today - timedelta(days=1)).isoformat()
+    two_days_ago_str = (today - timedelta(days=2)).isoformat()
 
     if not streak:
         supabase.table("streaks").insert({
-            "user_id": user_id, "current_streak": 1,
-            "longest_streak": 1, "last_active_date": today_str,
+            "user_id": user_id, "current_streak": 1, "longest_streak": 1,
+            "last_active_date": today_str, "shields_available": 0, "shields_used": 0,
         }).execute()
-        return
+        return False
 
     if streak["last_active_date"] == today_str:
-        return  # already counted today
+        return False  # already counted today
+
+    shield_used = False
+    shields_available = streak.get("shields_available") or 0
 
     if streak["last_active_date"] == yesterday_str:
         new_current = streak["current_streak"] + 1
+    elif streak["last_active_date"] == two_days_ago_str and shields_available > 0:
+        # Missed exactly one day, but a shield covers it — streak survives.
+        new_current = streak["current_streak"] + 1
+        shield_used = True
     else:
         new_current = 1  # streak broken, restart
 
     new_longest = max(new_current, streak["longest_streak"])
-    supabase.table("streaks").update({
+    updates = {
         "current_streak": new_current,
         "longest_streak": new_longest,
         "last_active_date": today_str,
-    }).eq("user_id", user_id).execute()
+    }
+
+    if shield_used:
+        updates["shields_available"] = shields_available - 1
+        updates["shields_used"] = (streak.get("shields_used") or 0) + 1
+
+    # Earn a fresh shield every 7-day streak milestone (capped at 3 so it stays meaningful)
+    if new_current % 7 == 0:
+        current_shields = updates.get("shields_available", shields_available)
+        updates["shields_available"] = min(current_shields + 1, 3)
+
+    supabase.table("streaks").update(updates).eq("user_id", user_id).execute()
+    return shield_used
+
+
+def process_completion(user_id: int, today_str: str):
+    """Runs after ANY completion event: updates streak/shields, checks for new badges."""
+    shield_used = update_streak_on_completion(user_id, today_str)
+    newly_awarded_badges = check_and_award_badges(user_id)
+    return shield_used, newly_awarded_badges
+
+
+# ---- Achievement badges ----
+
+BADGES = {
+    "streak_7": {"name": "🔥 Week Warrior", "condition": lambda s: s["current_streak"] >= 7},
+    "streak_30": {"name": "🌟 Monthly Master", "condition": lambda s: s["current_streak"] >= 30},
+    "topics_10": {"name": "📘 Getting Started", "condition": lambda s: s["total_done_topics"] >= 10},
+    "topics_50": {"name": "📚 Half Century", "condition": lambda s: s["total_done_topics"] >= 50},
+    "topics_100": {"name": "🏅 Century Club", "condition": lambda s: s["total_done_topics"] >= 100},
+    "night_owl": {"name": "🦉 Night Owl", "condition": lambda s: s["night_owl"]},
+    "early_bird": {"name": "🐦 Early Bird", "condition": lambda s: s["early_bird"]},
+    "shield_saver": {"name": "🛡️ Shield Saver", "condition": lambda s: s["shields_used"] >= 1},
+}
+
+
+def _gather_badge_stats(user_id: int):
+    from datetime import datetime as _dt
+
+    streak = get_streak(user_id) or {}
+    total_done = len(
+        supabase.table("syllabus").select("id").eq("user_id", user_id).eq("status", "done").execute().data
+    )
+    sessions = (
+        supabase.table("task_sessions")
+        .select("completed_at")
+        .eq("user_id", user_id)
+        .eq("completed", True)
+        .execute()
+    ).data
+
+    night_owl = False
+    early_bird = False
+    for s in sessions:
+        if not s.get("completed_at"):
+            continue
+        try:
+            hour = _dt.fromisoformat(s["completed_at"]).hour
+        except ValueError:
+            continue
+        if hour >= 22 or hour < 4:
+            night_owl = True
+        if hour < 7:
+            early_bird = True
+
+    return {
+        "current_streak": streak.get("current_streak", 0),
+        "total_done_topics": total_done,
+        "night_owl": night_owl,
+        "early_bird": early_bird,
+        "shields_used": streak.get("shields_used", 0),
+    }
+
+
+def get_user_badges(user_id: int):
+    res = supabase.table("user_badges").select("*").eq("user_id", user_id).execute()
+    return res.data
+
+
+def award_badge(user_id: int, code: str):
+    try:
+        supabase.table("user_badges").insert({"user_id": user_id, "badge_code": code}).execute()
+    except Exception:
+        pass  # already awarded (unique constraint) — safe to ignore
+
+
+def check_and_award_badges(user_id: int):
+    """Checks all badge conditions, awards new ones, returns list of newly-earned badge names."""
+    existing_codes = {b["badge_code"] for b in get_user_badges(user_id)}
+    stats = _gather_badge_stats(user_id)
+
+    newly_awarded = []
+    for code, meta in BADGES.items():
+        if code not in existing_codes and meta["condition"](stats):
+            award_badge(user_id, code)
+            newly_awarded.append(meta["name"])
+    return newly_awarded
 
 
 def get_progress_stats(user_id: int):
@@ -158,12 +262,14 @@ def get_progress_stats(user_id: int):
 
 def toggle_plan_item(plan_id: int, completed: bool, today_str: str = None):
     supabase.table("daily_plan").update({"completed": completed}).eq("id", plan_id).execute()
+    shield_used, newly_badges = False, []
     if completed:
         plan = supabase.table("daily_plan").select("syllabus_id, user_id").eq("id", plan_id).execute()
         if plan.data:
             mark_topic_status(plan.data[0]["syllabus_id"], "done")
             if today_str:
-                update_streak_on_completion(plan.data[0]["user_id"], today_str)
+                shield_used, newly_badges = process_completion(plan.data[0]["user_id"], today_str)
+    return shield_used, newly_badges
 
 
 # ---- Custom scheduled tasks (user-defined topic + time + duration) ----
@@ -235,6 +341,12 @@ def mark_session_completed(session_id: int):
     supabase.table("task_sessions").update({
         "completed": True, "completed_at": _dt.now().isoformat(),
     }).eq("id", session_id).execute()
+
+    session = get_session(session_id)
+    if not session:
+        return False, []
+    today_str = _dt.now().strftime("%Y-%m-%d")
+    return process_completion(session["user_id"], today_str)
 
 
 def get_session(session_id: int):

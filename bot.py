@@ -223,19 +223,34 @@ async def send_evening_checklist(context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(user["id"], header, reply_markup=keyboard)
 
 
+async def _notify_gamification(context: ContextTypes.DEFAULT_TYPE, user_id: int, lang: str, shield_used: bool, newly_badges: list):
+    """Sends shield-used and new-badge notifications after any completion event."""
+    if shield_used:
+        streak = db.get_streak(user_id)
+        remaining = streak["shields_available"] if streak else 0
+        await context.bot.send_message(user_id, t("shield_used_notification", lang, remaining=remaining))
+
+    for badge_name in newly_badges:
+        await context.bot.send_message(user_id, t("badge_earned_notification", lang, badge_name=badge_name))
+
+
 async def toggle_checklist_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+    user_id = query.from_user.id
     plan_id = int(query.data.replace("toggle_", ""))
 
     current_markup = query.message.reply_markup
     new_buttons = []
+    shield_used, newly_badges = False, []
     for row in current_markup.inline_keyboard:
         btn = row[0]
         if btn.callback_data == query.data:
             is_now_checked = btn.text.startswith("✅")
             new_completed = not is_now_checked
-            db.toggle_plan_item(plan_id, new_completed, today_str=datetime.now().strftime("%Y-%m-%d"))
+            shield_used, newly_badges = db.toggle_plan_item(
+                plan_id, new_completed, today_str=datetime.now().strftime("%Y-%m-%d")
+            )
             check = "✅" if new_completed else "⬜"
             new_text = check + btn.text[1:]
             new_buttons.append([InlineKeyboardButton(new_text, callback_data=btn.callback_data)])
@@ -243,6 +258,11 @@ async def toggle_checklist_item(update: Update, context: ContextTypes.DEFAULT_TY
             new_buttons.append(row)
 
     await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(new_buttons))
+
+    if shield_used or newly_badges:
+        user = db.get_user(user_id)
+        lang = user["language"] if user else "hinglish"
+        await _notify_gamification(context, user_id, lang, shield_used, newly_badges)
 
 
 async def progress_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -256,8 +276,13 @@ async def progress_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     streak = db.get_streak(user_id)
     streak_count = streak["current_streak"] if streak else 0
     longest = streak["longest_streak"] if streak else 0
+    shields = streak["shields_available"] if streak else 0
 
     msg = t("progress_header", lang, name=user["name"] or "", streak=streak_count, longest=longest)
+    msg += t("shields_line", lang, shields=shields)
+
+    badge_count = len(db.get_user_badges(user_id))
+    msg += t("badges_summary_line", lang, count=badge_count, total=len(db.BADGES))
 
     stats = db.get_progress_stats(user_id)
     if not stats:
@@ -269,6 +294,25 @@ async def progress_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             filled = pct // 10
             bar = "▓" * filled + "░" * (10 - filled)
             msg += f"\n{subject}: {bar} {done}/{total} ({pct}%)"
+
+    await update.message.reply_text(msg)
+
+
+async def badges_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    if not user:
+        await start(update, context)
+        return
+
+    lang = user["language"]
+    earned = db.get_user_badges(user_id)
+    earned_codes = {b["badge_code"] for b in earned}
+
+    msg = t("badges_header", lang, count=len(earned_codes), total=len(db.BADGES))
+    for code, meta in db.BADGES.items():
+        mark = "✅" if code in earned_codes else "🔒"
+        msg += f"\n{mark} {meta['name']}"
 
     await update.message.reply_text(msg)
 
@@ -457,12 +501,13 @@ async def mark_task_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     plan_id = int(query.data.replace("donetask_", ""))
     today_str = datetime.now().strftime("%Y-%m-%d")
-    db.toggle_plan_item(plan_id, True, today_str=today_str)
+    shield_used, newly_badges = db.toggle_plan_item(plan_id, True, today_str=today_str)
 
     await query.edit_message_text(
         query.message.text + "\n\n✅",
     )
     await context.bot.send_message(user_id, t("task_marked_done", lang, name=user["name"] or ""))
+    await _notify_gamification(context, user_id, lang, shield_used, newly_badges)
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -651,7 +696,7 @@ async def mark_session_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = user["language"] if user else "hinglish"
 
     session_id = int(query.data.replace("sessiondone_", ""))
-    db.mark_session_completed(session_id)
+    shield_used, newly_badges = db.mark_session_completed(session_id)
     session = db.get_session(session_id)
     topic = session["topic_snapshot"] if session else ""
 
@@ -659,6 +704,7 @@ async def mark_session_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         user_id, t("session_marked_done", lang, name=user["name"] or "", topic=topic)
     )
+    await _notify_gamification(context, user_id, lang, shield_used, newly_badges)
 
 
 def main():
@@ -667,6 +713,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("progress", progress_command))
+    app.add_handler(CommandHandler("badges", badges_command))
     app.add_handler(CommandHandler("extractquestions", extractquestions_command))
     app.add_handler(CommandHandler("pdf", extractquestions_command))
     app.add_handler(CommandHandler("addreminder", addreminder_command))

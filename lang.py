@@ -250,7 +250,8 @@ TEXT = {
         "hindi": (
             "🤖 *Study Sync — कमांड गाइड*\n\n"
             "*/start* — बॉट सेटअप करें (भाषा, नाम, एग्ज़ाम, सिलेबस)\n"
-            "*/progress* — विषय-वार प्रगति और स्ट्रीक देखें\n"
+            "*/progress* — विषय-वार प्रगति, स्ट्रीक, शील्ड और बैज देखें\n"
+            "*/badges* — अपने सारे अचीवमेंट बैज देखें\n"
             "*/pdf* (या /extractquestions) — किसी PDF से MCQ questions निकालकर साफ़-सुथरी PDF बनवाएं\n"
             "*/addreminder HH:MM* — दिन में कोई भी नया टास्क रिमाइंडर जोड़ें\n"
             "*/removereminder HH:MM* — कोई रिमाइंडर हटाएं\n"
@@ -269,7 +270,8 @@ TEXT = {
         "english": (
             "🤖 *Study Sync — Command Guide*\n\n"
             "*/start* — Set up the bot (language, name, exam, syllabus)\n"
-            "*/progress* — View subject-wise progress and your streak\n"
+            "*/progress* — View subject-wise progress, streak, shields, and badges\n"
+            "*/badges* — View all your earned achievement badges\n"
             "*/pdf* (or /extractquestions) — Extract MCQ questions from a PDF into a clean, formatted PDF\n"
             "*/addreminder HH:MM* — Add a new task reminder at any time of day\n"
             "*/removereminder HH:MM* — Remove a reminder\n"
@@ -288,7 +290,8 @@ TEXT = {
         "hinglish": (
             "🤖 *Study Sync — Command Guide*\n\n"
             "*/start* — Bot setup kijiye (language, naam, exam, syllabus)\n"
-            "*/progress* — Subject-wise progress aur apni streak dekhiye\n"
+            "*/progress* — Subject-wise progress, streak, shields aur badges dekhiye\n"
+            "*/badges* — Apne saare earned achievement badges dekhiye\n"
             "*/pdf* (ya /extractquestions) — Kisi PDF se MCQ questions nikaal kar clean, formatted PDF banwaiye\n"
             "*/addreminder HH:MM* — Din mein kabhi bhi ek naya task reminder add kijiye\n"
             "*/removereminder HH:MM* — Koi reminder hataiye\n"
@@ -304,6 +307,33 @@ TEXT = {
             "• Jab chahe /progress se dekhiye kitna syllabus cover ho chuka hai\n"
             "• Purane papers/notes ki PDF bhej kar usse questions alag nikalwa sakte hain"
         ),
+    },
+
+    # ---- Gamification: streak shields + achievement badges ----
+    "shields_line": {
+        "hindi": "🛡️ शील्ड: {shields}/3\n",
+        "english": "🛡️ Shields: {shields}/3\n",
+        "hinglish": "🛡️ Shields: {shields}/3\n",
+    },
+    "badges_summary_line": {
+        "hindi": "🎖️ बैज: {count}/{total} अनलॉक\n",
+        "english": "🎖️ Badges: {count}/{total} unlocked\n",
+        "hinglish": "🎖️ Badges: {count}/{total} unlock hue\n",
+    },
+    "shield_used_notification": {
+        "hindi": "🛡️ आपकी स्ट्रीक बच गई! एक दिन मिस होने पर भी शील्ड ने उसे बचा लिया। बची हुई शील्ड: {remaining}",
+        "english": "🛡️ Your streak was saved! A shield covered the missed day. Shields remaining: {remaining}",
+        "hinglish": "🛡️ Aapki streak bach gayi! Ek din miss hone par bhi shield ne use bacha liya. Bachi hui shields: {remaining}",
+    },
+    "badge_earned_notification": {
+        "hindi": "🎉 नया बैज अनलॉक हुआ!\n{badge_name}\n\n/badges से सारे बैज देखिए।",
+        "english": "🎉 New badge unlocked!\n{badge_name}\n\nSee all your badges with /badges.",
+        "hinglish": "🎉 Naya badge unlock hua!\n{badge_name}\n\n/badges se saare badges dekhiye.",
+    },
+    "badges_header": {
+        "hindi": "🎖️ आपके बैज ({count}/{total})\n",
+        "english": "🎖️ Your Badges ({count}/{total})\n",
+        "hinglish": "🎖️ Aapke Badges ({count}/{total})\n",
     },
 }
 
