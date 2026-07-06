@@ -11,6 +11,32 @@ QUESTION_START = re.compile(r"^(?:Q\.?\s?\d+[\.\)]|Question\s+\d+[:\.]|\d+[\.\)]
 OPTION_LINE = re.compile(r"^\(?([a-dA-D])[\.\)]\s*(.*)")
 ANSWER_LINE = re.compile(r"^(?:Ans(?:wer)?)\s*[:\-]?\s*\(?([a-dA-D])\)?", re.IGNORECASE)
 
+# Common characters found in real-world PDFs that the default PDF font (Latin-1 only)
+# can't render. Map the common ones to safe equivalents so text stays readable;
+# anything left over gets replaced with '?' instead of crashing the whole extraction.
+_CHAR_REPLACEMENTS = {
+    "\u2018": "'", "\u2019": "'",       # smart single quotes
+    "\u201c": '"', "\u201d": '"',       # smart double quotes
+    "\u2013": "-", "\u2014": "-",       # en dash, em dash
+    "\u2026": "...",                    # ellipsis
+    "\u2022": "-",                      # bullet
+    "\u00d7": "x",                      # multiplication sign
+    "\u00f7": "/",                      # division sign
+    "\u221a": "sqrt",                   # square root
+    "\u00b0": " deg",                   # degree sign
+    "\u2192": "->",                     # arrow
+    "\u2264": "<=", "\u2265": ">=",     # less/greater-equal
+    "\u00b1": "+/-",                    # plus-minus
+}
+
+
+def _sanitize_for_pdf(text: str) -> str:
+    """Makes text safe for the core PDF font: replace known symbols, drop anything else unsupported."""
+    for bad, good in _CHAR_REPLACEMENTS.items():
+        text = text.replace(bad, good)
+    # Anything still outside Latin-1 gets replaced with '?' rather than crashing PDF generation
+    return text.encode("latin-1", errors="replace").decode("latin-1")
+
 
 def extract_questions_from_text(raw_text: str):
     """Returns list of dicts: {number, question, options: {a,b,c,d}, answer}"""
@@ -71,16 +97,16 @@ def generate_questions_pdf(questions, output_path: str, title: str = "Extracted 
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     pdf.set_font("Helvetica", "B", 16)
-    pdf.multi_cell(0, 10, title, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.multi_cell(0, 10, _sanitize_for_pdf(title), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.ln(4)
 
     for q in questions:
         pdf.set_font("Helvetica", "B", 12)
-        pdf.multi_cell(0, 8, f"Q{q['number']}. {q['question']}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.multi_cell(0, 8, _sanitize_for_pdf(f"Q{q['number']}. {q['question']}"), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.set_font("Helvetica", size=11)
         for letter in ["a", "b", "c", "d"]:
             if letter in q["options"]:
-                pdf.multi_cell(0, 7, f"   ({letter}) {q['options'][letter]}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+                pdf.multi_cell(0, 7, _sanitize_for_pdf(f"   ({letter}) {q['options'][letter]}"), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.ln(3)
 
     if include_answers and any(q["answer"] for q in questions):
@@ -90,8 +116,8 @@ def generate_questions_pdf(questions, output_path: str, title: str = "Extracted 
         pdf.ln(2)
         pdf.set_font("Helvetica", size=11)
         for q in questions:
-            ans = q["answer"] or "—"
-            pdf.multi_cell(0, 7, f"Q{q['number']}: {ans}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+            ans = q["answer"] or "-"
+            pdf.multi_cell(0, 7, _sanitize_for_pdf(f"Q{q['number']}: {ans}"), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
     pdf.output(output_path)
     return output_path

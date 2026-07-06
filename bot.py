@@ -327,7 +327,14 @@ async def handle_question_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     await _update_progress("📝 Formatting PDF...", 95)
     out_path = f"/tmp/{user_id}_questions_output.pdf"
-    generate_questions_pdf(questions, out_path, title="Extracted Questions")
+    try:
+        generate_questions_pdf(questions, out_path, title="Extracted Questions")
+    except Exception as e:
+        logging.exception("PDF generation failed")
+        await status_msg.edit_text(
+            f"❌ Kuch gadbad ho gayi PDF banate waqt. Kripya dobara try kijiye ya alag PDF use kijiye.\n({type(e).__name__})"
+        )
+        return
 
     await status_msg.edit_text(f"✅ Done!\n[{_bar(100)}] 100%")
 
