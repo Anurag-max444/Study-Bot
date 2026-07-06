@@ -159,6 +159,11 @@ TEXT = {
         "english": "✅ Mark as Done",
         "hinglish": "✅ Complete Kiya",
     },
+    "task_time_already_passed": {
+        "hindi": "⚠️ ध्यान दें: यह समय आज के लिए निकल चुका है, इसलिए यह टास्क कल इसी समय चलेगा।",
+        "english": "⚠️ Note: this time has already passed for today, so this task will trigger tomorrow at this time instead.",
+        "hinglish": "⚠️ Dhyan dein: yeh time aaj ke liye nikal chuka hai, isliye yeh task kal isi time par chalega.",
+    },
     "task_marked_done": {
         "hindi": "शाबाश, {name}! यह टॉपिक पूरा दर्ज हो गया है। अगला टास्क अगले रिमाइंडर पर मिलेगा।",
         "english": "Well done, {name}! This topic has been marked complete. Your next task will arrive at the next reminder.",

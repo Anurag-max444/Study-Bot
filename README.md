@@ -219,3 +219,18 @@ Supabase SQL Editor me `migration_phase8_gamification.sql` run karo.
 
 ### Setup ke liye
 Supabase SQL Editor me `migration_phase9_reliable_followups.sql` run karo.
+
+## Bug Hunt — Sab Fixes (is round me)
+
+Pura codebase systematically audit kiya — static analysis (pyflakes) + poora `/addtask` flow ek fake database ke against end-to-end simulate karke test kiya. Ye mila aur fix kiya:
+
+1. **Sabse badi wajah "message nahi aa raha" ki:** Agar Supabase me `migration_phase8` ya `migration_phase9` nahi chalayi gayi ho, to naye columns missing hote hai, aur database insert silently fail ho jata hai — matlab bot ka message bhejne wala code tak kabhi pahuchta hi nahi. **Isीलिye ek नया `ALL_MIGRATIONS.sql` file banayi hai** jisme saari migrations ek saath, safe order me, idempotent tarike se hai — bas ye ek file chala do, koi step miss nahi hoga.
+
+2. **Per-user error isolation:** Pehle agar scheduler ke ek loop me kisi ek user ka data problematic hota (jaise koi missing field), to us minute ke baaki saare users ka message bhi nahi jata tha (poora loop crash ho jata tha beech me). Ab har user ka processing apne try/except me hai — ek fail ho to baaki sab normally chalte rahenge.
+
+3. **Global error handler add kiya** — ab koi bhi unhandled exception properly Render logs me dikhega, kuch bhi silently fail nahi hoga.
+
+4. **"Beet chuka time" wali confusion fix ki** — agar `/addtask` me aisa time do jo aaj ke liye already nikal chuka hai, ab bot clearly bata dega ki "yeh kal chalega", pehle silently kal tak wait karta tha bina bataye.
+
+### Zaroori: Agar pehli baar ye sab chala rahe ho ya kisi step ko lekar confusion hai
+Bas Supabase SQL Editor me **`ALL_MIGRATIONS.sql`** chala do — chahe naya project ho ya purana, ye safe hai (sab `IF NOT EXISTS` guarded hai, dobara chalane se bhi kuch nahi tootega). Isse alag-alag migration files yaad rakhne ka jhanjhat khatam ho jata hai.

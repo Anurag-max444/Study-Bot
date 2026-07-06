@@ -189,16 +189,19 @@ async def send_morning_plan(context: ContextTypes.DEFAULT_TYPE):
     today_str = datetime.now().strftime("%Y-%m-%d")
 
     for user in users:
-        lang = user["language"]
-        plan_items = db.create_today_plan(user["id"], today_str)
+        try:
+            lang = user["language"]
+            plan_items = db.create_today_plan(user["id"], today_str)
 
-        if not plan_items:
-            await context.bot.send_message(user["id"], t("no_topics_left", lang))
-            continue
+            if not plan_items:
+                await context.bot.send_message(user["id"], t("no_topics_left", lang))
+                continue
 
-        header = t("morning_plan_header", lang, name=user["name"] or "")
-        keyboard = _build_checklist_keyboard(plan_items)
-        await context.bot.send_message(user["id"], header, reply_markup=keyboard)
+            header = t("morning_plan_header", lang, name=user["name"] or "")
+            keyboard = _build_checklist_keyboard(plan_items)
+            await context.bot.send_message(user["id"], header, reply_markup=keyboard)
+        except Exception:
+            logging.exception(f"send_morning_plan failed for user {user.get('id')}")
 
 
 async def send_evening_checklist(context: ContextTypes.DEFAULT_TYPE):
@@ -207,20 +210,23 @@ async def send_evening_checklist(context: ContextTypes.DEFAULT_TYPE):
     today_str = datetime.now().strftime("%Y-%m-%d")
 
     for user in users:
-        lang = user["language"]
-        plan_items = db.get_today_plan(user["id"], today_str)
+        try:
+            lang = user["language"]
+            plan_items = db.get_today_plan(user["id"], today_str)
 
-        if not plan_items:
-            continue
+            if not plan_items:
+                continue
 
-        header = t("evening_checklist_header", lang)
-        if datetime.now().weekday() == 6:  # Sunday
-            stats = db.get_progress_stats(user["id"])
-            total_done = sum(s["done"] for s in stats.values())
-            total_all = sum(s["total"] for s in stats.values())
-            header += f"\n\n📅 Weekly wrap: {total_done}/{total_all} topics done overall so far."
-        keyboard = _build_checklist_keyboard(plan_items)
-        await context.bot.send_message(user["id"], header, reply_markup=keyboard)
+            header = t("evening_checklist_header", lang)
+            if datetime.now().weekday() == 6:  # Sunday
+                stats = db.get_progress_stats(user["id"])
+                total_done = sum(s["done"] for s in stats.values())
+                total_all = sum(s["total"] for s in stats.values())
+                header += f"\n\n📅 Weekly wrap: {total_done}/{total_all} topics done overall so far."
+            keyboard = _build_checklist_keyboard(plan_items)
+            await context.bot.send_message(user["id"], header, reply_markup=keyboard)
+        except Exception:
+            logging.exception(f"send_evening_checklist failed for user {user.get('id')}")
 
 
 async def _notify_gamification(context: ContextTypes.DEFAULT_TYPE, user_id: int, lang: str, shield_used: bool, newly_badges: list):
@@ -473,23 +479,26 @@ async def send_task_reminders(context: ContextTypes.DEFAULT_TYPE):
 
     slot_rows = db.get_users_with_slot_at(now_str)
     for slot in slot_rows:
-        user = slot.get("users")
-        if not user or user.get("onboarding_step") != "done":
-            continue
+        try:
+            user = slot.get("users")
+            if not user or user.get("onboarding_step") != "done":
+                continue
 
-        lang = user["language"]
-        task = db.get_or_create_next_task(user["id"], today_str)
+            lang = user["language"]
+            task = db.get_or_create_next_task(user["id"], today_str)
 
-        if not task:
-            await context.bot.send_message(user["id"], t("task_all_done_today", lang))
-            continue
+            if not task:
+                await context.bot.send_message(user["id"], t("task_all_done_today", lang))
+                continue
 
-        header = t("task_reminder_header", lang, name=user["name"] or "")
-        topic_line = f"\n\n📌 {task['syllabus']['subject']}: {task['syllabus']['topic']}"
-        keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton(t("mark_done_button", lang), callback_data=f"donetask_{task['id']}")]
-        ])
-        await context.bot.send_message(user["id"], header + topic_line, reply_markup=keyboard)
+            header = t("task_reminder_header", lang, name=user["name"] or "")
+            topic_line = f"\n\n📌 {task['syllabus']['subject']}: {task['syllabus']['topic']}"
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton(t("mark_done_button", lang), callback_data=f"donetask_{task['id']}")]
+            ])
+            await context.bot.send_message(user["id"], header + topic_line, reply_markup=keyboard)
+        except Exception:
+            logging.exception(f"send_task_reminders failed for slot {slot.get('id')}")
 
 
 async def mark_task_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -571,9 +580,15 @@ async def handle_task_flow_text(update: Update, context: ContextTypes.DEFAULT_TY
             return
 
         db.add_custom_task(user["id"], flow["time"], flow["topic"], minutes)
-        await update.message.reply_text(
-            t("task_scheduled", lang, time=flow["time"], topic=flow["topic"], duration=minutes)
-        )
+        confirmation = t("task_scheduled", lang, time=flow["time"], topic=flow["topic"], duration=minutes)
+
+        # Agar diya gaya time aaj ke liye pehle hi beet chuka hai, to clearly bata do
+        # ki yeh kal fire hoga, warna user confuse ho sakta hai ki bot msg nahi kar raha.
+        now_str = datetime.now().strftime("%H:%M")
+        if flow["time"] <= now_str:
+            confirmation += "\n\n" + t("task_time_already_passed", lang)
+
+        await update.message.reply_text(confirmation)
         del context.user_data["task_flow"]
         return
 
@@ -648,28 +663,31 @@ async def send_custom_task_start(context: ContextTypes.DEFAULT_TYPE):
 
     rows = db.get_users_with_custom_task_at(now_str)
     for row in rows:
-        user = row.get("users")
-        if not user or user.get("onboarding_step") != "done":
-            continue
+        try:
+            user = row.get("users")
+            if not user or user.get("onboarding_step") != "done":
+                continue
 
-        lang = user["language"]
-        session, is_new = db.create_task_session(
-            user["id"], row["id"], today_str, row["topic"], row["duration_minutes"]
-        )
-        if not is_new or not session:
-            continue  # already started today, avoid duplicate reminders
+            lang = user["language"]
+            session, is_new = db.create_task_session(
+                user["id"], row["id"], today_str, row["topic"], row["duration_minutes"]
+            )
+            if not is_new or not session:
+                continue  # already started today, avoid duplicate reminders
 
-        # One-time by design: agar dubara padhna ho to /addtask se manually dobara set karo.
-        # Study log (task_sessions) me history hamesha safe rehti hai, isse asar nahi padta.
-        db.delete_custom_task_by_id(row["id"])
+            # One-time by design: agar dubara padhna ho to /addtask se manually dobara set karo.
+            # Study log (task_sessions) me history hamesha safe rehti hai, isse asar nahi padta.
+            db.delete_custom_task_by_id(row["id"])
 
-        await context.bot.send_message(
-            user["id"],
-            t("task_session_start", lang, name=user["name"] or "", topic=row["topic"], duration=row["duration_minutes"]),
-            parse_mode="Markdown",
-        )
-        # Follow-up ka time database me save ho gaya hai (create_task_session ke andar) —
-        # ab yeh check_due_followups job khud uthayega, chahe bot beech me restart bhi ho jaye.
+            await context.bot.send_message(
+                user["id"],
+                t("task_session_start", lang, name=user["name"] or "", topic=row["topic"], duration=row["duration_minutes"]),
+                parse_mode="Markdown",
+            )
+            # Follow-up ka time database me save ho gaya hai (create_task_session ke andar) —
+            # ab yeh check_due_followups job khud uthayega, chahe bot beech me restart bhi ho jaye.
+        except Exception:
+            logging.exception(f"send_custom_task_start failed for custom_task {row.get('id')}")
 
 
 async def check_due_followups(context: ContextTypes.DEFAULT_TYPE):
@@ -677,20 +695,23 @@ async def check_due_followups(context: ContextTypes.DEFAULT_TYPE):
     DB-backed (not in-memory) so a Render restart/sleep during the study window can't lose it."""
     due_sessions = db.get_due_followups()
     for session in due_sessions:
-        user = session.get("users")
-        if not user:
-            continue
+        try:
+            user = session.get("users")
+            if not user:
+                continue
 
-        lang = user["language"]
-        keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton(t("session_done_button", lang), callback_data=f"sessiondone_{session['id']}")]
-        ])
-        await context.bot.send_message(
-            user["id"],
-            t("task_session_followup", lang, topic=session["topic_snapshot"]),
-            reply_markup=keyboard,
-        )
-        db.mark_followup_sent(session["id"])
+            lang = user["language"]
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton(t("session_done_button", lang), callback_data=f"sessiondone_{session['id']}")]
+            ])
+            await context.bot.send_message(
+                user["id"],
+                t("task_session_followup", lang, topic=session["topic_snapshot"]),
+                reply_markup=keyboard,
+            )
+            db.mark_followup_sent(session["id"])
+        except Exception:
+            logging.exception(f"check_due_followups failed for session {session.get('id')}")
 
 
 async def mark_session_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -710,6 +731,11 @@ async def mark_session_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_id, t("session_marked_done", lang, name=user["name"] or "", topic=topic)
     )
     await _notify_gamification(context, user_id, lang, shield_used, newly_badges)
+
+
+async def global_error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    """Catches any unhandled exception anywhere in the bot so nothing fails silently."""
+    logging.error("Unhandled exception while processing update:", exc_info=context.error)
 
 
 def main():
@@ -735,6 +761,7 @@ def main():
     app.add_handler(CallbackQueryHandler(mark_task_done, pattern="^donetask_"))
     app.add_handler(CallbackQueryHandler(mark_session_done, pattern="^sessiondone_"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+    app.add_error_handler(global_error_handler)
 
     # Har minute check karo ki kisi user ka reminder time ab hua hai kya
     app.job_queue.run_repeating(send_morning_plan, interval=60, first=5)
