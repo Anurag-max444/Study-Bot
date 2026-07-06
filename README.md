@@ -168,6 +168,19 @@ Supabase SQL Editor me `migration_phase7_custom_tasks.sql` run karo.
 
 `/pdf` ya `/extractquestions` use karte waqt ab ek real-time progress bar dikhta hai — page-by-page reading progress se lekar PDF banane tak, sab live update hota hai chat me.
 
+## Hindi (Devanagari) Support Added
+
+Ab PDF extraction Hindi aur English **dono ek saath** (mixed content) sahi se handle karta hai. Isके liye do naye font families add ki hai (`fonts/` folder me):
+- `NotoSans-Regular.ttf` / `NotoSans-Bold.ttf` — English/Latin text ke liye
+- `NotoSansDevanagari-Regular.ttf` / `NotoSansDevanagari-Bold.ttf` — Hindi text ke liye
+
+Ye dono Google ke free, open-source Noto fonts hai (SIL Open Font License — bina kisi restriction ke free use kar sakte ho). Code apne aap detect kar leta hai kaunsa hissa Hindi hai aur kaunsa English, aur sahi font switch karta hai — ek hi line me dono mix ho to bhi chalega.
+
+**Zaroori:** `fonts/` folder poora repo me copy karna mat bhoolna, warna PDF generation fail ho jayega.
+
+### Known limitation
+- Reasoning section ke questions jisme **graphs/diagrams/images** hote hai, unke aas-paas ka text extract ho sakta hai lekin image khud copy nahi hoti (ye feature abhi text-only hai). Aise questions ko manually dekhna better hoga.
+
 ### Aage kya improve kar sakte ho (optional, khud try karna chahe to)
 - `/addsyllabus` command — naye topics manually add karne ke liye
 - Mock test mode — extracted questions se hi ek timer-based quiz bana sakte ho
