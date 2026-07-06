@@ -210,3 +210,12 @@ Jab bhi koi naya badge unlock hota hai, bot turant ek celebration message bhejta
 
 ### Setup ke liye
 Supabase SQL Editor me `migration_phase8_gamification.sql` run karo.
+
+## Phase 9 — Reliable Follow-up Reminders (bug fix)
+
+**Bug fix:** Pehle "kya poora kiya?" wala follow-up reminder sirf bot ki memory me schedule hota tha. Agar Render free tier beech me kabhi restart/sleep ho jaye (jo free tier pe hota rehta hai), to wo scheduled reminder gum ho jata tha — matlab session kabhi "complete" mark nahi hota tha, aur study log me nahi dikhta tha.
+
+**Fix:** Ab follow-up ka time **database me save hota hai**, aur ek regular job (jo har minute chalta hai, baaki reminders ki tarah) check karta hai ki kiska time ho gaya hai. Isse bot kabhi bhi restart ho, koi follow-up miss nahi hoga.
+
+### Setup ke liye
+Supabase SQL Editor me `migration_phase9_reliable_followups.sql` run karo.

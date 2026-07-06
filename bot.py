@@ -642,7 +642,7 @@ async def studylog_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def send_custom_task_start(context: ContextTypes.DEFAULT_TYPE):
-    """Runs every minute. Starts any custom task whose time matches now, schedules a follow-up."""
+    """Runs every minute. Starts any custom task whose time matches now."""
     now_str = datetime.now().strftime("%H:%M")
     today_str = datetime.now().strftime("%Y-%m-%d")
 
@@ -668,24 +668,29 @@ async def send_custom_task_start(context: ContextTypes.DEFAULT_TYPE):
             t("task_session_start", lang, name=user["name"] or "", topic=row["topic"], duration=row["duration_minutes"]),
             parse_mode="Markdown",
         )
+        # Follow-up ka time database me save ho gaya hai (create_task_session ke andar) —
+        # ab yeh check_due_followups job khud uthayega, chahe bot beech me restart bhi ho jaye.
 
-        context.job_queue.run_once(
-            send_task_followup,
-            when=row["duration_minutes"] * 60,
-            data={"session_id": session["id"], "user_id": user["id"], "lang": lang, "topic": row["topic"]},
+
+async def check_due_followups(context: ContextTypes.DEFAULT_TYPE):
+    """Runs every minute. Sends the 'did you finish?' prompt for any session whose time is up.
+    DB-backed (not in-memory) so a Render restart/sleep during the study window can't lose it."""
+    due_sessions = db.get_due_followups()
+    for session in due_sessions:
+        user = session.get("users")
+        if not user:
+            continue
+
+        lang = user["language"]
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton(t("session_done_button", lang), callback_data=f"sessiondone_{session['id']}")]
+        ])
+        await context.bot.send_message(
+            user["id"],
+            t("task_session_followup", lang, topic=session["topic_snapshot"]),
+            reply_markup=keyboard,
         )
-
-
-async def send_task_followup(context: ContextTypes.DEFAULT_TYPE):
-    data = context.job.data
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton(t("session_done_button", data["lang"]), callback_data=f"sessiondone_{data['session_id']}")]
-    ])
-    await context.bot.send_message(
-        data["user_id"],
-        t("task_session_followup", data["lang"], topic=data["topic"]),
-        reply_markup=keyboard,
-    )
+        db.mark_followup_sent(session["id"])
 
 
 async def mark_session_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -736,6 +741,7 @@ def main():
     app.job_queue.run_repeating(send_evening_checklist, interval=60, first=5)
     app.job_queue.run_repeating(send_task_reminders, interval=60, first=5)
     app.job_queue.run_repeating(send_custom_task_start, interval=60, first=5)
+    app.job_queue.run_repeating(check_due_followups, interval=60, first=5)
 
     # Render free Web Service ko port pe response chahiye, warna spin-down/fail ho jata hai.
     # Ye background thread mein ek chhota HTTP server chalata hai jise UptimeRobot ping kar sake.
