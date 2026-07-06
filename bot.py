@@ -607,6 +607,10 @@ async def send_custom_task_start(context: ContextTypes.DEFAULT_TYPE):
         if not is_new or not session:
             continue  # already started today, avoid duplicate reminders
 
+        # One-time by design: agar dubara padhna ho to /addtask se manually dobara set karo.
+        # Study log (task_sessions) me history hamesha safe rehti hai, isse asar nahi padta.
+        db.delete_custom_task_by_id(row["id"])
+
         await context.bot.send_message(
             user["id"],
             t("task_session_start", lang, name=user["name"] or "", topic=row["topic"], duration=row["duration_minutes"]),

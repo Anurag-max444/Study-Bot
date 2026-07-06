@@ -187,9 +187,9 @@ TEXT = {
         "hinglish": "Kripya sahi format mein bhejiye — jaise 1h, 90m, ya 1.5h",
     },
     "task_scheduled": {
-        "hindi": "बढ़िया! {time} बजे '{topic}' के लिए {duration} मिनट का सेशन सेट हो गया है। ✅",
-        "english": "Great! A {duration}-minute session for '{topic}' is scheduled at {time}. ✅",
-        "hinglish": "Badhiya! {time} baje '{topic}' ke liye {duration} minute ka session set ho gaya hai. ✅",
+        "hindi": "बढ़िया! {time} बजे '{topic}' के लिए {duration} मिनट का सेशन सेट हो गया है। ✅\n(यह एक बार चलेगा — अगले दिन फिर से चाहिए तो दोबारा /addtask कीजिए)",
+        "english": "Great! A {duration}-minute session for '{topic}' is scheduled at {time}. ✅\n(This is one-time — add it again with /addtask if you want it tomorrow too)",
+        "hinglish": "Badhiya! {time} baje '{topic}' ke liye {duration} minute ka session set ho gaya hai. ✅\n(Yeh ek baar chalega — agle din phir chahiye to dobara /addtask kijiye)",
     },
     "mytopics_header": {
         "hindi": "📋 आपके शेड्यूल्ड टॉपिक:\n",

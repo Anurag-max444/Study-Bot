@@ -197,6 +197,10 @@ def remove_custom_task(user_id: int, time_str: str):
     return bool(res.data)
 
 
+def delete_custom_task_by_id(task_id: int):
+    supabase.table("custom_tasks").delete().eq("id", task_id).execute()
+
+
 def get_users_with_custom_task_at(time_str: str):
     res = (
         supabase.table("custom_tasks")
