@@ -684,11 +684,10 @@ async def studylog_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def send_custom_task_start(context: ContextTypes.DEFAULT_TYPE):
-    """Runs every minute. Starts any custom task whose time matches now."""
-    now_str = datetime.now().strftime("%H:%M")
+    """Runs every minute. Catch-up safe — fires anything whose time has arrived, even if delayed."""
     today_str = datetime.now().strftime("%Y-%m-%d")
 
-    rows = db.get_users_with_custom_task_at(now_str)
+    rows = db.get_due_custom_tasks()
     for row in rows:
         try:
             user = row.get("users")
@@ -780,9 +779,11 @@ async def revisions_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     msg = t("revisions_header", lang)
     for r in pending:
-        subject = r["syllabus"]["subject"]
-        topic = r["syllabus"]["topic"]
-        msg += f"\n📅 {r['due_date']} ({r['interval_label']}) — {subject}: {topic}"
+        if r.get("syllabus"):
+            label = f"{r['syllabus']['subject']}: {r['syllabus']['topic']}"
+        else:
+            label = r.get("topic_text") or "—"
+        msg += f"\n📅 {r['due_date']} ({r['interval_label']}) — {label}"
 
     await update.message.reply_text(msg)
 
@@ -797,15 +798,17 @@ async def send_due_revisions(context: ContextTypes.DEFAULT_TYPE):
                 continue
 
             lang = user["language"]
-            subject = rev["syllabus"]["subject"]
-            topic = rev["syllabus"]["topic"]
+            if rev.get("syllabus"):
+                label = f"{rev['syllabus']['subject']}: {rev['syllabus']['topic']}"
+            else:
+                label = rev.get("topic_text") or "—"
 
             keyboard = InlineKeyboardMarkup([
                 [InlineKeyboardButton(t("revision_done_button", lang), callback_data=f"revdone_{rev['id']}")]
             ])
             await context.bot.send_message(
                 user["id"],
-                t("revision_due_message", lang, interval=rev["interval_label"], subject=subject, topic=topic),
+                t("revision_due_message", lang, interval=rev["interval_label"], topic=label),
                 reply_markup=keyboard,
             )
             db.mark_revision_notified(rev["id"])
@@ -827,6 +830,39 @@ async def mark_revision_done(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await context.bot.send_message(user_id, t("revision_marked_done", lang))
 
 
+async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Deletes the bot's own recent messages in this chat to declutter it.
+    Telegram bots can only delete their OWN messages in private chats — the
+    user's own messages can't be touched by any bot, no matter what."""
+    import asyncio as _asyncio
+
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    lang = user["language"] if user else "hinglish"
+    chat_id = update.effective_chat.id
+    current_id = update.message.message_id
+
+    lookback = 300
+    if context.args and context.args[0].isdigit():
+        lookback = min(int(context.args[0]), 2000)  # sensible upper cap
+
+    status_msg = await update.message.reply_text(t("clearing_in_progress", lang))
+
+    deleted_count = 0
+    for mid in range(current_id, max(current_id - lookback, 0), -1):
+        try:
+            await context.bot.delete_message(chat_id, mid)
+            deleted_count += 1
+        except Exception:
+            pass  # not the bot's message, too old (48h+), or already gone — skip silently
+        await _asyncio.sleep(0.03)  # gentle pacing to avoid Telegram flood limits
+
+    try:
+        await status_msg.edit_text(t("clear_done", lang, count=deleted_count))
+    except Exception:
+        await context.bot.send_message(chat_id, t("clear_done", lang, count=deleted_count))
+
+
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
@@ -836,6 +872,7 @@ def main():
     app.add_handler(CommandHandler("badges", badges_command))
     app.add_handler(CommandHandler("mytree", mytree_command))
     app.add_handler(CommandHandler("revisions", revisions_command))
+    app.add_handler(CommandHandler("clear", clear_command))
     app.add_handler(CommandHandler("extractquestions", extractquestions_command))
     app.add_handler(CommandHandler("pdf", extractquestions_command))
     app.add_handler(CommandHandler("addreminder", addreminder_command))

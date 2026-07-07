@@ -9,7 +9,6 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-
 def get_user(user_id: int):
     res = supabase.table("users").select("*").eq("id", user_id).execute()
     return res.data[0] if res.data else None

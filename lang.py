@@ -259,6 +259,7 @@ TEXT = {
             "*/badges* — अपने सारे अचीवमेंट बैज देखें\n"
             "*/mytree* — अपना Study Tree देखें (जो पढ़ाई के साथ grow होता है)\n"
             "*/revisions* — अपने पेंडिंग रिवीजन देखें (spaced repetition)\n"
+            "*/clear HH:MM* — पुराने बॉट मैसेज साफ़ करें (optional: कितने पीछे तक)\n"
             "*/pdf* (या /extractquestions) — किसी PDF से MCQ questions निकालकर साफ़-सुथरी PDF बनवाएं\n"
             "*/addreminder HH:MM* — दिन में कोई भी नया टास्क रिमाइंडर जोड़ें\n"
             "*/removereminder HH:MM* — कोई रिमाइंडर हटाएं\n"
@@ -281,6 +282,7 @@ TEXT = {
             "*/badges* — View all your earned achievement badges\n"
             "*/mytree* — View your Study Tree (grows as you study)\n"
             "*/revisions* — View your pending revisions (spaced repetition)\n"
+            "*/clear* — Clear old bot messages (optional: /clear 500 for how far back)\n"
             "*/pdf* (or /extractquestions) — Extract MCQ questions from a PDF into a clean, formatted PDF\n"
             "*/addreminder HH:MM* — Add a new task reminder at any time of day\n"
             "*/removereminder HH:MM* — Remove a reminder\n"
@@ -303,6 +305,7 @@ TEXT = {
             "*/badges* — Apne saare earned achievement badges dekhiye\n"
             "*/mytree* — Apna Study Tree dekhiye (jo padhai ke saath grow hota hai)\n"
             "*/revisions* — Apne pending revisions dekhiye (spaced repetition)\n"
+            "*/clear* — Purane bot messages saaf kijiye (optional: /clear 500 se kitna peeche tak)\n"
             "*/pdf* (ya /extractquestions) — Kisi PDF se MCQ questions nikaal kar clean, formatted PDF banwaiye\n"
             "*/addreminder HH:MM* — Din mein kabhi bhi ek naya task reminder add kijiye\n"
             "*/removereminder HH:MM* — Koi reminder hataiye\n"
@@ -361,9 +364,9 @@ TEXT = {
 
     # ---- Spaced repetition revisions ----
     "revision_due_message": {
-        "hindi": "🧠 रिवीजन टाइम! ({interval})\n\n📌 {subject}: {topic}\n\nक्या यह अभी भी याद है? दोबारा देख लो।",
-        "english": "🧠 Revision time! ({interval})\n\n📌 {subject}: {topic}\n\nStill remember this? Give it a quick review.",
-        "hinglish": "🧠 Revision time! ({interval})\n\n📌 {subject}: {topic}\n\nAbhi bhi yaad hai kya? Ek baar dobara dekh lo.",
+        "hindi": "🧠 रिवीजन टाइम! ({interval})\n\n📌 {topic}\n\nक्या यह अभी भी याद है? दोबारा देख लो।",
+        "english": "🧠 Revision time! ({interval})\n\n📌 {topic}\n\nStill remember this? Give it a quick review.",
+        "hinglish": "🧠 Revision time! ({interval})\n\n📌 {topic}\n\nAbhi bhi yaad hai kya? Ek baar dobara dekh lo.",
     },
     "revision_done_button": {
         "hindi": "✅ रिवाइज़ कर लिया",
@@ -384,6 +387,18 @@ TEXT = {
         "hindi": "अभी कोई रिवीजन पेंडिंग नहीं है। जैसे ही कोई टॉपिक पूरा करोगे, यहां रिवीजन शेड्यूल हो जाएंगे।",
         "english": "No revisions pending right now. As you complete topics, revisions will get scheduled here automatically.",
         "hinglish": "Abhi koi revision pending nahi hai. Jaise hi koi topic complete karoge, yahan revisions automatically schedule ho jayenge.",
+    },
+
+    # ---- /clear command ----
+    "clearing_in_progress": {
+        "hindi": "🧹 पुराने मैसेज साफ़ किए जा रहे हैं (सिर्फ बॉट के अपने मैसेज)... थोड़ा समय लगेगा।",
+        "english": "🧹 Clearing old messages (only the bot's own)... this may take a moment.",
+        "hinglish": "🧹 Purane messages saaf kiye ja rahe hain (sirf bot ke apne messages)... thoda time lagega.",
+    },
+    "clear_done": {
+        "hindi": "✅ हो गया! {count} मैसेज हटा दिए गए।\n\nनोट: टेलीग्राम के नियमों के अनुसार बॉट सिर्फ अपने भेजे मैसेज हटा सकता है, आपके भेजे मैसेज नहीं।",
+        "english": "✅ Done! {count} messages cleared.\n\nNote: Telegram only allows a bot to delete its own messages, not yours.",
+        "hinglish": "✅ Ho gaya! {count} messages clear kar diye.\n\nNote: Telegram ke rules ke hisaab se bot sirf apne bheje messages hata sakta hai, aapke bheje messages nahi.",
     },
 }
 
