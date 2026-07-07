@@ -323,6 +323,33 @@ async def badges_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(msg)
 
 
+async def mytree_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    from tree_generator import generate_tree_image, get_stage, get_stage_name
+
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    if not user:
+        await start(update, context)
+        return
+
+    lang = user["language"]
+    growth_score = db.get_tree_growth_score(user_id)
+    stage = get_stage(growth_score)
+    days_inactive = db.get_days_since_active(user_id)
+    wilted = bool(days_inactive is not None and days_inactive >= 2)
+
+    out_path = f"/tmp/{user_id}_tree.png"
+    generate_tree_image(stage, wilted, out_path)
+
+    stage_name = get_stage_name(stage, lang)
+    caption = t("tree_caption", lang, stage=stage_name, score=growth_score)
+    if wilted:
+        caption += "\n\n" + t("tree_wilted_warning", lang)
+
+    with open(out_path, "rb") as f:
+        await update.message.reply_photo(photo=f, caption=caption)
+
+
 async def extractquestions_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     user = db.get_user(user_id)
@@ -745,6 +772,7 @@ def main():
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("progress", progress_command))
     app.add_handler(CommandHandler("badges", badges_command))
+    app.add_handler(CommandHandler("mytree", mytree_command))
     app.add_handler(CommandHandler("extractquestions", extractquestions_command))
     app.add_handler(CommandHandler("pdf", extractquestions_command))
     app.add_handler(CommandHandler("addreminder", addreminder_command))

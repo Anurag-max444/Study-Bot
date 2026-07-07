@@ -257,6 +257,7 @@ TEXT = {
             "*/start* — बॉट सेटअप करें (भाषा, नाम, एग्ज़ाम, सिलेबस)\n"
             "*/progress* — विषय-वार प्रगति, स्ट्रीक, शील्ड और बैज देखें\n"
             "*/badges* — अपने सारे अचीवमेंट बैज देखें\n"
+            "*/mytree* — अपना Study Tree देखें (जो पढ़ाई के साथ grow होता है)\n"
             "*/pdf* (या /extractquestions) — किसी PDF से MCQ questions निकालकर साफ़-सुथरी PDF बनवाएं\n"
             "*/addreminder HH:MM* — दिन में कोई भी नया टास्क रिमाइंडर जोड़ें\n"
             "*/removereminder HH:MM* — कोई रिमाइंडर हटाएं\n"
@@ -277,6 +278,7 @@ TEXT = {
             "*/start* — Set up the bot (language, name, exam, syllabus)\n"
             "*/progress* — View subject-wise progress, streak, shields, and badges\n"
             "*/badges* — View all your earned achievement badges\n"
+            "*/mytree* — View your Study Tree (grows as you study)\n"
             "*/pdf* (or /extractquestions) — Extract MCQ questions from a PDF into a clean, formatted PDF\n"
             "*/addreminder HH:MM* — Add a new task reminder at any time of day\n"
             "*/removereminder HH:MM* — Remove a reminder\n"
@@ -297,6 +299,7 @@ TEXT = {
             "*/start* — Bot setup kijiye (language, naam, exam, syllabus)\n"
             "*/progress* — Subject-wise progress, streak, shields aur badges dekhiye\n"
             "*/badges* — Apne saare earned achievement badges dekhiye\n"
+            "*/mytree* — Apna Study Tree dekhiye (jo padhai ke saath grow hota hai)\n"
             "*/pdf* (ya /extractquestions) — Kisi PDF se MCQ questions nikaal kar clean, formatted PDF banwaiye\n"
             "*/addreminder HH:MM* — Din mein kabhi bhi ek naya task reminder add kijiye\n"
             "*/removereminder HH:MM* — Koi reminder hataiye\n"
@@ -339,6 +342,18 @@ TEXT = {
         "hindi": "🎖️ आपके बैज ({count}/{total})\n",
         "english": "🎖️ Your Badges ({count}/{total})\n",
         "hinglish": "🎖️ Aapke Badges ({count}/{total})\n",
+    },
+
+    # ---- Study Tree ----
+    "tree_caption": {
+        "hindi": "🌳 आपका Study Tree\n\nStage: {stage}\nGrowth Score: {score}\n\nहर टॉपिक पूरा करने पर यह और बढ़ेगा!",
+        "english": "🌳 Your Study Tree\n\nStage: {stage}\nGrowth Score: {score}\n\nIt grows a little more every time you complete a topic!",
+        "hinglish": "🌳 Aapka Study Tree\n\nStage: {stage}\nGrowth Score: {score}\n\nHar topic complete karne par yeh aur badhega!",
+    },
+    "tree_wilted_warning": {
+        "hindi": "⚠️ लगता है कुछ दिनों से पढ़ाई नहीं हुई — पेड़ मुरझा रहा है। वापस आ जाओ, इसे फिर से हरा-भरा कर दो! 🌱",
+        "english": "⚠️ Looks like it's been a few days — your tree is wilting. Come back and help it bloom again! 🌱",
+        "hinglish": "⚠️ Lagta hai kuch dinon se padhai nahi hui — tree murjha raha hai. Wapas aa jao, ise phir se hara-bhara kar do! 🌱",
     },
 }
 

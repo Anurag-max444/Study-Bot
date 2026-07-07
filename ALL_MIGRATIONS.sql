@@ -82,7 +82,7 @@ create table if not exists custom_tasks (
 create table if not exists task_sessions (
     id bigserial primary key,
     user_id bigint references users(id) on delete cascade,
-    custom_task_id bigint references custom_tasks(id) on delete cascade,
+    custom_task_id bigint references custom_tasks(id) on delete set null,
     session_date date not null,
     topic_snapshot text not null,
     duration_minutes int not null,
@@ -109,6 +109,34 @@ create table if not exists user_badges (
 
 alter table task_sessions add column if not exists follow_up_due_at timestamp;
 alter table task_sessions add column if not exists followup_sent boolean default false;
+
+-- ---- Phase 10: Fix CASCADE DELETE bug ----
+-- Purane installs me custom_task_id ka FK "ON DELETE CASCADE" tha, jiski wajah se
+-- task_sessions row apne aap delete ho jati thi jab custom_task (one-time hone ki
+-- wajah se) delete hota tha -- follow-up kabhi milta hi nahi tha. Ye DO block
+-- FK ko safely "ON DELETE SET NULL" me badal deta hai (fresh installs pe already
+-- sahi hai upar, is DO block se koi farak nahi padega unke liye).
+
+DO $$
+DECLARE
+    con_name text;
+BEGIN
+    SELECT conname INTO con_name
+    FROM pg_constraint
+    WHERE conrelid = 'task_sessions'::regclass
+      AND confrelid = 'custom_tasks'::regclass
+      AND contype = 'f';
+
+    IF con_name IS NOT NULL THEN
+        EXECUTE format('ALTER TABLE task_sessions DROP CONSTRAINT %I', con_name);
+    END IF;
+END $$;
+
+ALTER TABLE task_sessions ALTER COLUMN custom_task_id DROP NOT NULL;
+
+ALTER TABLE task_sessions
+    ADD CONSTRAINT task_sessions_custom_task_id_fkey
+    FOREIGN KEY (custom_task_id) REFERENCES custom_tasks(id) ON DELETE SET NULL;
 
 -- ---- RLS: sirf server hi in tables ko access karta hai, isliye sabme disable ----
 

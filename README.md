@@ -186,4 +186,70 @@ Ye dono Google ke free, open-source Noto fonts hai (SIL Open Font License — bi
 - Mock test mode — extracted questions se hi ek timer-based quiz bana sakte ho
 - Weak topic detector — jo topics baar-baar skip hote hai unko priority dena
 
+## Phase 8 — Streak Shield + Achievement Badges (gamification)
 
+Padhai me consistency banaye rakhne ke liye ek fun, Duolingo-jaisa gamification layer add kiya hai.
+
+### 🛡️ Streak Shield
+- Har 7-din ki streak pe ek **shield** milta hai (max 3 store ho sakti hai)
+- Agar koi din miss ho jaye, aur shield available ho, to wo automatically use ho jati hai aur **streak toot ti nahi**
+- `/progress` me dikhta hai kitni shields available hai
+
+### 🎖️ Achievement Badges
+8 badges hai jo alag-alag milestones pe unlock hote hai:
+- 🔥 Week Warrior (7-day streak)
+- 🌟 Monthly Master (30-day streak)
+- 📘 Getting Started (10 topics complete)
+- 📚 Half Century (50 topics complete)
+- 🏅 Century Club (100 topics complete)
+- 🦉 Night Owl (raat 10 baje ke baad padhai complete ki)
+- 🐦 Early Bird (subah 7 baje se pehle padhai complete ki)
+- 🛡️ Shield Saver (pehli baar shield use hui)
+
+Jab bhi koi naya badge unlock hota hai, bot turant ek celebration message bhejta hai. **`/badges`** command se sab dekh sakte ho — kaunse unlock ho chuke hai, kaunse abhi lock hai.
+
+### Setup ke liye
+Supabase SQL Editor me `migration_phase8_gamification.sql` run karo.
+
+## Phase 9 — Reliable Follow-up Reminders (bug fix)
+
+**Bug fix:** Pehle "kya poora kiya?" wala follow-up reminder sirf bot ki memory me schedule hota tha. Agar Render free tier beech me kabhi restart/sleep ho jaye (jo free tier pe hota rehta hai), to wo scheduled reminder gum ho jata tha — matlab session kabhi "complete" mark nahi hota tha, aur study log me nahi dikhta tha.
+
+**Fix:** Ab follow-up ka time **database me save hota hai**, aur ek regular job (jo har minute chalta hai, baaki reminders ki tarah) check karta hai ki kiska time ho gaya hai. Isse bot kabhi bhi restart ho, koi follow-up miss nahi hoga.
+
+### Setup ke liye
+Supabase SQL Editor me `migration_phase9_reliable_followups.sql` run karo.
+
+## Bug Hunt — Sab Fixes (is round me)
+
+Pura codebase systematically audit kiya — static analysis (pyflakes) + poora `/addtask` flow ek fake database ke against end-to-end simulate karke test kiya. Ye mila aur fix kiya:
+
+1. **Sabse badi wajah "message nahi aa raha" ki:** Agar Supabase me `migration_phase8` ya `migration_phase9` nahi chalayi gayi ho, to naye columns missing hote hai, aur database insert silently fail ho jata hai — matlab bot ka message bhejne wala code tak kabhi pahuchta hi nahi. **Isीलिye ek नया `ALL_MIGRATIONS.sql` file banayi hai** jisme saari migrations ek saath, safe order me, idempotent tarike se hai — bas ye ek file chala do, koi step miss nahi hoga.
+
+2. **Per-user error isolation:** Pehle agar scheduler ke ek loop me kisi ek user ka data problematic hota (jaise koi missing field), to us minute ke baaki saare users ka message bhi nahi jata tha (poora loop crash ho jata tha beech me). Ab har user ka processing apne try/except me hai — ek fail ho to baaki sab normally chalte rahenge.
+
+3. **Global error handler add kiya** — ab koi bhi unhandled exception properly Render logs me dikhega, kuch bhi silently fail nahi hoga.
+
+4. **"Beet chuka time" wali confusion fix ki** — agar `/addtask` me aisa time do jo aaj ke liye already nikal chuka hai, ab bot clearly bata dega ki "yeh kal chalega", pehle silently kal tak wait karta tha bina bataye.
+
+### Zaroori: Agar pehli baar ye sab chala rahe ho ya kisi step ko lekar confusion hai
+Bas Supabase SQL Editor me **`ALL_MIGRATIONS.sql`** chala do — chahe naya project ho ya purana, ye safe hai (sab `IF NOT EXISTS` guarded hai, dobara chalane se bhi kuch nahi tootega). Isse alag-alag migration files yaad rakhne ka jhanjhat khatam ho jata hai.
+
+## Phase 11 — Study Tree (naya feature, bina API ke)
+
+`/mytree` command bhejo — bot ek real tree image banata hai (Pillow se, 100% free, koi API nahi) jo tumhari consistency ke saath grow hota hai.
+
+**6 Growth Stages:**
+- 🌰 Seed (0 activities)
+- 🌱 Sprout (1-4)
+- 🪴 Sapling (5-14)
+- 🌳 Young Tree (15-29)
+- 🌲 Mature Tree (30-59)
+- 🌸 Blooming Tree (60+) — flowers ke saath!
+
+Growth score = total completed syllabus topics + completed custom task sessions — ye kabhi kam nahi hota, sirf badhta hai.
+
+**Wilted warning:** Agar 2+ din se koi activity nahi hui, tree murjha ke (brown, drooping branches) dikhta hai — ek gentle visual reminder ki wapas aana hai.
+
+### Setup ke liye
+Koi naya SQL migration nahi chahiye — ye maujooda data (syllabus + task_sessions) se hi calculate hota hai. Bas `bot.py`, `db.py`, `lang.py` aur nayi file `tree_generator.py` copy kar lena.

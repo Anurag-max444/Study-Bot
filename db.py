@@ -10,7 +10,6 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
-
 def get_user(user_id: int):
     res = supabase.table("users").select("*").eq("id", user_id).execute()
     return res.data[0] if res.data else None
@@ -469,3 +468,25 @@ def get_or_create_next_task(user_id: int, today_str: str):
         .execute()
     )
     return result.data[0] if result.data else None
+
+
+def get_tree_growth_score(user_id: int):
+    """Total completed activities (syllabus topics + custom task sessions) — never decreases."""
+    total_done_topics = len(
+        supabase.table("syllabus").select("id").eq("user_id", user_id).eq("status", "done").execute().data
+    )
+    total_sessions = len(
+        supabase.table("task_sessions").select("id").eq("user_id", user_id).eq("completed", True).execute().data
+    )
+    return total_done_topics + total_sessions
+
+
+def get_days_since_active(user_id: int):
+    """Returns days since last completed activity, or None if never active."""
+    from datetime import date
+
+    streak = get_streak(user_id)
+    if not streak or not streak.get("last_active_date"):
+        return None
+    last_active = date.fromisoformat(streak["last_active_date"])
+    return (date.today() - last_active).days
