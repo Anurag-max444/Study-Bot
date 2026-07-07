@@ -765,6 +765,68 @@ async def global_error_handler(update: object, context: ContextTypes.DEFAULT_TYP
     logging.error("Unhandled exception while processing update:", exc_info=context.error)
 
 
+async def revisions_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    if not user:
+        await start(update, context)
+        return
+
+    lang = user["language"]
+    pending = db.get_pending_revisions(user_id)
+    if not pending:
+        await update.message.reply_text(t("revisions_empty", lang))
+        return
+
+    msg = t("revisions_header", lang)
+    for r in pending:
+        subject = r["syllabus"]["subject"]
+        topic = r["syllabus"]["topic"]
+        msg += f"\n📅 {r['due_date']} ({r['interval_label']}) — {subject}: {topic}"
+
+    await update.message.reply_text(msg)
+
+
+async def send_due_revisions(context: ContextTypes.DEFAULT_TYPE):
+    """Runs every minute; sends any revision reminders that are due today."""
+    due = db.get_due_revisions()
+    for rev in due:
+        try:
+            user = rev.get("users")
+            if not user or user.get("onboarding_step") != "done":
+                continue
+
+            lang = user["language"]
+            subject = rev["syllabus"]["subject"]
+            topic = rev["syllabus"]["topic"]
+
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton(t("revision_done_button", lang), callback_data=f"revdone_{rev['id']}")]
+            ])
+            await context.bot.send_message(
+                user["id"],
+                t("revision_due_message", lang, interval=rev["interval_label"], subject=subject, topic=topic),
+                reply_markup=keyboard,
+            )
+            db.mark_revision_notified(rev["id"])
+        except Exception:
+            logging.exception(f"send_due_revisions failed for revision {rev.get('id')}")
+
+
+async def mark_revision_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    user_id = query.from_user.id
+    user = db.get_user(user_id)
+    lang = user["language"] if user else "hinglish"
+
+    revision_id = int(query.data.replace("revdone_", ""))
+    db.mark_revision_completed(revision_id)
+
+    await query.edit_message_text(query.message.text + "\n\n✅")
+    await context.bot.send_message(user_id, t("revision_marked_done", lang))
+
+
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
@@ -773,6 +835,7 @@ def main():
     app.add_handler(CommandHandler("progress", progress_command))
     app.add_handler(CommandHandler("badges", badges_command))
     app.add_handler(CommandHandler("mytree", mytree_command))
+    app.add_handler(CommandHandler("revisions", revisions_command))
     app.add_handler(CommandHandler("extractquestions", extractquestions_command))
     app.add_handler(CommandHandler("pdf", extractquestions_command))
     app.add_handler(CommandHandler("addreminder", addreminder_command))
@@ -788,6 +851,7 @@ def main():
     app.add_handler(CallbackQueryHandler(toggle_checklist_item, pattern="^toggle_"))
     app.add_handler(CallbackQueryHandler(mark_task_done, pattern="^donetask_"))
     app.add_handler(CallbackQueryHandler(mark_session_done, pattern="^sessiondone_"))
+    app.add_handler(CallbackQueryHandler(mark_revision_done, pattern="^revdone_"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
     app.add_error_handler(global_error_handler)
 
@@ -797,6 +861,7 @@ def main():
     app.job_queue.run_repeating(send_task_reminders, interval=60, first=5)
     app.job_queue.run_repeating(send_custom_task_start, interval=60, first=5)
     app.job_queue.run_repeating(check_due_followups, interval=60, first=5)
+    app.job_queue.run_repeating(send_due_revisions, interval=60, first=5)
 
     # Render free Web Service ko port pe response chahiye, warna spin-down/fail ho jata hai.
     # Ye background thread mein ek chhota HTTP server chalata hai jise UptimeRobot ping kar sake.

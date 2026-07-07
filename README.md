@@ -253,3 +253,24 @@ Growth score = total completed syllabus topics + completed custom task sessions 
 
 ### Setup ke liye
 Koi naya SQL migration nahi chahiye — ye maujooda data (syllabus + task_sessions) se hi calculate hota hai. Bas `bot.py`, `db.py`, `lang.py` aur nayi file `tree_generator.py` copy kar lena.
+
+## Phase 12 — Spaced Repetition Revision System
+
+Jab bhi koi syllabus topic "done" mark hota hai (evening checklist ya per-task reminder se), bot automatically **4 revision reminders** schedule kar deta hai — forgetting curve ke hisaab se:
+- 1 din baad
+- 3 din baad
+- 7 din baad
+- 15 din baad
+
+**Naya command:**
+- `/revisions` — apne saare pending revisions dekho (kab due hai, kaunsa topic)
+
+**Kaam kaise karta hai:**
+1. Topic complete mark karte hi 4 revisions background me schedule ho jate hai
+2. Jis din revision due ho, bot khud message bhejta hai — topic ka naam, "✅ Revised" button ke saath
+3. Tap karte hi wo revision complete mark ho jata hai
+
+Ye purane syllabus/task-tracking system ke upar hi kaam karta hai — koi extra manual kaam nahi karna padta, bas topics complete karte raho, revision reminders khud-ba-khud milte rahenge.
+
+### Setup ke liye
+Supabase SQL Editor me `migration_phase12_spaced_repetition.sql` run karo (naya `revisions` table banayega).

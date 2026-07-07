@@ -258,6 +258,7 @@ TEXT = {
             "*/progress* — विषय-वार प्रगति, स्ट्रीक, शील्ड और बैज देखें\n"
             "*/badges* — अपने सारे अचीवमेंट बैज देखें\n"
             "*/mytree* — अपना Study Tree देखें (जो पढ़ाई के साथ grow होता है)\n"
+            "*/revisions* — अपने पेंडिंग रिवीजन देखें (spaced repetition)\n"
             "*/pdf* (या /extractquestions) — किसी PDF से MCQ questions निकालकर साफ़-सुथरी PDF बनवाएं\n"
             "*/addreminder HH:MM* — दिन में कोई भी नया टास्क रिमाइंडर जोड़ें\n"
             "*/removereminder HH:MM* — कोई रिमाइंडर हटाएं\n"
@@ -279,6 +280,7 @@ TEXT = {
             "*/progress* — View subject-wise progress, streak, shields, and badges\n"
             "*/badges* — View all your earned achievement badges\n"
             "*/mytree* — View your Study Tree (grows as you study)\n"
+            "*/revisions* — View your pending revisions (spaced repetition)\n"
             "*/pdf* (or /extractquestions) — Extract MCQ questions from a PDF into a clean, formatted PDF\n"
             "*/addreminder HH:MM* — Add a new task reminder at any time of day\n"
             "*/removereminder HH:MM* — Remove a reminder\n"
@@ -300,6 +302,7 @@ TEXT = {
             "*/progress* — Subject-wise progress, streak, shields aur badges dekhiye\n"
             "*/badges* — Apne saare earned achievement badges dekhiye\n"
             "*/mytree* — Apna Study Tree dekhiye (jo padhai ke saath grow hota hai)\n"
+            "*/revisions* — Apne pending revisions dekhiye (spaced repetition)\n"
             "*/pdf* (ya /extractquestions) — Kisi PDF se MCQ questions nikaal kar clean, formatted PDF banwaiye\n"
             "*/addreminder HH:MM* — Din mein kabhi bhi ek naya task reminder add kijiye\n"
             "*/removereminder HH:MM* — Koi reminder hataiye\n"
@@ -354,6 +357,33 @@ TEXT = {
         "hindi": "⚠️ लगता है कुछ दिनों से पढ़ाई नहीं हुई — पेड़ मुरझा रहा है। वापस आ जाओ, इसे फिर से हरा-भरा कर दो! 🌱",
         "english": "⚠️ Looks like it's been a few days — your tree is wilting. Come back and help it bloom again! 🌱",
         "hinglish": "⚠️ Lagta hai kuch dinon se padhai nahi hui — tree murjha raha hai. Wapas aa jao, ise phir se hara-bhara kar do! 🌱",
+    },
+
+    # ---- Spaced repetition revisions ----
+    "revision_due_message": {
+        "hindi": "🧠 रिवीजन टाइम! ({interval})\n\n📌 {subject}: {topic}\n\nक्या यह अभी भी याद है? दोबारा देख लो।",
+        "english": "🧠 Revision time! ({interval})\n\n📌 {subject}: {topic}\n\nStill remember this? Give it a quick review.",
+        "hinglish": "🧠 Revision time! ({interval})\n\n📌 {subject}: {topic}\n\nAbhi bhi yaad hai kya? Ek baar dobara dekh lo.",
+    },
+    "revision_done_button": {
+        "hindi": "✅ रिवाइज़ कर लिया",
+        "english": "✅ Revised",
+        "hinglish": "✅ Revise Kar Liya",
+    },
+    "revision_marked_done": {
+        "hindi": "बढ़िया! रिवीजन दर्ज हो गया। 🧠",
+        "english": "Great! Revision logged. 🧠",
+        "hinglish": "Badhiya! Revision record ho gaya. 🧠",
+    },
+    "revisions_header": {
+        "hindi": "🧠 आपके पेंडिंग रिवीजन:\n",
+        "english": "🧠 Your pending revisions:\n",
+        "hinglish": "🧠 Aapke pending revisions:\n",
+    },
+    "revisions_empty": {
+        "hindi": "अभी कोई रिवीजन पेंडिंग नहीं है। जैसे ही कोई टॉपिक पूरा करोगे, यहां रिवीजन शेड्यूल हो जाएंगे।",
+        "english": "No revisions pending right now. As you complete topics, revisions will get scheduled here automatically.",
+        "hinglish": "Abhi koi revision pending nahi hai. Jaise hi koi topic complete karoge, yahan revisions automatically schedule ho jayenge.",
     },
 }
 

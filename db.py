@@ -42,8 +42,10 @@ def get_pending_topics(user_id: int, limit: int = 5):
     return res.data
 
 
-def mark_topic_status(topic_id: int, status: str):
+def mark_topic_status(topic_id: int, status: str, user_id: int = None, today_str: str = None):
     supabase.table("syllabus").update({"status": status}).eq("id", topic_id).execute()
+    if status == "done" and user_id and today_str:
+        create_revisions_for_topic(user_id, topic_id, today_str)
 
 
 def get_users_by_morning_time(time_str: str):
@@ -269,7 +271,7 @@ def toggle_plan_item(plan_id: int, completed: bool, today_str: str = None):
     if completed:
         plan = supabase.table("daily_plan").select("syllabus_id, user_id").eq("id", plan_id).execute()
         if plan.data:
-            mark_topic_status(plan.data[0]["syllabus_id"], "done")
+            mark_topic_status(plan.data[0]["syllabus_id"], "done", user_id=plan.data[0]["user_id"], today_str=today_str)
             if today_str:
                 shield_used, newly_badges = process_completion(plan.data[0]["user_id"], today_str)
     return shield_used, newly_badges
@@ -490,3 +492,66 @@ def get_days_since_active(user_id: int):
         return None
     last_active = date.fromisoformat(streak["last_active_date"])
     return (date.today() - last_active).days
+
+
+# ---- Spaced Repetition Revisions ----
+
+REVISION_INTERVALS = [(1, "1-day"), (3, "3-day"), (7, "7-day"), (15, "15-day")]
+
+
+def create_revisions_for_topic(user_id: int, syllabus_id: int, today_str: str):
+    """Schedules 4 future revision reminders (1/3/7/15 days) for a newly-completed topic."""
+    from datetime import date, timedelta
+
+    base = date.fromisoformat(today_str)
+    rows = [
+        {
+            "user_id": user_id,
+            "syllabus_id": syllabus_id,
+            "due_date": (base + timedelta(days=offset)).isoformat(),
+            "interval_label": label,
+        }
+        for offset, label in REVISION_INTERVALS
+    ]
+    supabase.table("revisions").insert(rows).execute()
+
+
+def get_due_revisions():
+    """Revisions due today (or earlier) that haven't been notified about yet."""
+    from datetime import date
+
+    today_str = date.today().isoformat()
+    res = (
+        supabase.table("revisions")
+        .select("*, users(*), syllabus(*)")
+        .eq("notified", False)
+        .eq("completed", False)
+        .lte("due_date", today_str)
+        .execute()
+    )
+    return res.data
+
+
+def mark_revision_notified(revision_id: int):
+    supabase.table("revisions").update({"notified": True}).eq("id", revision_id).execute()
+
+
+def mark_revision_completed(revision_id: int):
+    supabase.table("revisions").update({"completed": True}).eq("id", revision_id).execute()
+
+
+def get_revision(revision_id: int):
+    res = supabase.table("revisions").select("*, syllabus(*)").eq("id", revision_id).execute()
+    return res.data[0] if res.data else None
+
+
+def get_pending_revisions(user_id: int):
+    res = (
+        supabase.table("revisions")
+        .select("*, syllabus(*)")
+        .eq("user_id", user_id)
+        .eq("completed", False)
+        .order("due_date")
+        .execute()
+    )
+    return res.data
