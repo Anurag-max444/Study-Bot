@@ -5,6 +5,11 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from dotenv import load_dotenv
 
+# NOTE: load_dotenv() must run BEFORE `import db`, because db.py reads
+# SUPABASE_URL/SUPABASE_KEY at module import time (top-level create_client call).
+# If db is imported first, those env vars are still unset -> crash.
+load_dotenv()
+
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, MessageHandler, CallbackQueryHandler,
@@ -18,7 +23,6 @@ from default_syllabus import DEFAULT_SYLLABUS
 # NOTE: Render pe env var TZ=Asia/Kolkata set karna, warna server UTC time use karega
 # aur reminders galat time pe jayenge.
 
-load_dotenv()
 logging.basicConfig(level=logging.INFO)
 BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
