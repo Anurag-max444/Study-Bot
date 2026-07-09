@@ -1,12 +1,12 @@
 -- ============================================================
--- STUDY SYNC — COMPLETE DATABASE SETUP (all-in-one, safe to re-run)
+-- STUDY SYNC — COMPLETE DATABASE SCHEMA (clean, single-file)
 -- ============================================================
--- Ye ek hi file poore schema aur saari migrations ko cover karti hai.
--- Naya Supabase project ho ya purana, bas ye pura file ek baar chala do —
--- har cheez "IF NOT EXISTS" / safe-guarded hai, dobara chalane se bhi kuch nahi tootega.
+-- Run this once in the Supabase SQL Editor. Safe to re-run at any time —
+-- everything is guarded with IF NOT EXISTS / DO blocks, so re-running
+-- won't break or duplicate anything.
 -- ============================================================
 
--- ---- Phase 1: Core tables ----
+-- ---- Core: users, syllabus, streaks ----
 
 create table if not exists users (
     id bigint primary key,
@@ -14,7 +14,6 @@ create table if not exists users (
     language text default 'hinglish',
     exam text,
     daily_hours numeric default 4,
-    reminder_time text default '07:00',
     onboarding_step text default 'ask_name',
     created_at timestamp default now()
 );
@@ -28,47 +27,16 @@ create table if not exists syllabus (
     created_at timestamp default now()
 );
 
-create table if not exists daily_plan (
-    id bigserial primary key,
-    user_id bigint references users(id) on delete cascade,
-    plan_date date not null,
-    syllabus_id bigint references syllabus(id) on delete cascade,
-    completed boolean default false,
-    created_at timestamp default now()
-);
-
 create table if not exists streaks (
     user_id bigint primary key references users(id) on delete cascade,
     current_streak int default 0,
     longest_streak int default 0,
-    last_active_date date
+    last_active_date date,
+    shields_available int default 0,
+    shields_used int default 0
 );
 
--- ---- Phase 2: Evening reminder + unique daily_plan constraint ----
-
-alter table users add column if not exists evening_reminder_time text default '19:00';
-
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint WHERE conname = 'unique_user_syllabus_date'
-    ) THEN
-        ALTER TABLE daily_plan
-            ADD CONSTRAINT unique_user_syllabus_date
-            UNIQUE (user_id, syllabus_id, plan_date);
-    END IF;
-END $$;
-
--- ---- Phase 6: Multiple per-task reminder slots ----
-
-create table if not exists reminder_slots (
-    id bigserial primary key,
-    user_id bigint references users(id) on delete cascade,
-    time text not null,
-    created_at timestamp default now()
-);
-
--- ---- Phase 7: Custom scheduled tasks + study log ----
+-- ---- Custom study sessions (/addtask) ----
 
 create table if not exists custom_tasks (
     id bigserial primary key,
@@ -76,6 +44,7 @@ create table if not exists custom_tasks (
     time text not null,
     topic text not null,
     duration_minutes int not null,
+    next_trigger_at timestamp,
     created_at timestamp default now()
 );
 
@@ -88,14 +57,13 @@ create table if not exists task_sessions (
     duration_minutes int not null,
     completed boolean default false,
     completed_at timestamp,
+    follow_up_due_at timestamp,
+    followup_sent boolean default false,
     created_at timestamp default now(),
     unique (custom_task_id, session_date)
 );
 
--- ---- Phase 8: Gamification (streak shields + achievement badges) ----
-
-alter table streaks add column if not exists shields_available int default 0;
-alter table streaks add column if not exists shields_used int default 0;
+-- ---- Gamification: achievement badges ----
 
 create table if not exists user_badges (
     id bigserial primary key,
@@ -105,67 +73,40 @@ create table if not exists user_badges (
     unique (user_id, badge_code)
 );
 
--- ---- Phase 9: Reliable (DB-backed) follow-up reminders ----
-
-alter table task_sessions add column if not exists follow_up_due_at timestamp;
-alter table task_sessions add column if not exists followup_sent boolean default false;
-
--- ---- Phase 10: Fix CASCADE DELETE bug ----
--- Purane installs me custom_task_id ka FK "ON DELETE CASCADE" tha, jiski wajah se
--- task_sessions row apne aap delete ho jati thi jab custom_task (one-time hone ki
--- wajah se) delete hota tha -- follow-up kabhi milta hi nahi tha. Ye DO block
--- FK ko safely "ON DELETE SET NULL" me badal deta hai (fresh installs pe already
--- sahi hai upar, is DO block se koi farak nahi padega unke liye).
-
-DO $$
-DECLARE
-    con_name text;
-BEGIN
-    SELECT conname INTO con_name
-    FROM pg_constraint
-    WHERE conrelid = 'task_sessions'::regclass
-      AND confrelid = 'custom_tasks'::regclass
-      AND contype = 'f';
-
-    IF con_name IS NOT NULL THEN
-        EXECUTE format('ALTER TABLE task_sessions DROP CONSTRAINT %I', con_name);
-    END IF;
-END $$;
-
-ALTER TABLE task_sessions ALTER COLUMN custom_task_id DROP NOT NULL;
-
-ALTER TABLE task_sessions
-    ADD CONSTRAINT task_sessions_custom_task_id_fkey
-    FOREIGN KEY (custom_task_id) REFERENCES custom_tasks(id) ON DELETE SET NULL;
-
--- ---- RLS: sirf server hi in tables ko access karta hai, isliye sabme disable ----
-
-alter table users disable row level security;
-alter table syllabus disable row level security;
-alter table daily_plan disable row level security;
-alter table streaks disable row level security;
-alter table reminder_slots disable row level security;
-alter table custom_tasks disable row level security;
-alter table task_sessions disable row level security;
-alter table user_badges disable row level security;
-
--- ============================================================
--- Ho gaya! Ab bot ke saare features (onboarding, reminders, gamification,
--- custom tasks, badges) ke liye database poora taiyaar hai.
--- ============================================================
--- Spaced Repetition: jab koi syllabus topic "done" mark hota hai, 4 revision
--- reminders automatically schedule ho jate hai (1/3/7/15 din baad) — forgetting
--- curve ke hisaab se, taaki topic long-term memory me chala jaye.
+-- ---- Spaced repetition revisions ----
 
 create table if not exists revisions (
     id bigserial primary key,
     user_id bigint references users(id) on delete cascade,
     syllabus_id bigint references syllabus(id) on delete cascade,
+    topic_text text,
     due_date date not null,
-    interval_label text not null,   -- '1-day' / '3-day' / '7-day' / '15-day'
+    interval_label text not null,
     notified boolean default false,
     completed boolean default false,
     created_at timestamp default now()
 );
 
+-- ---- Cleanup: drop the old reminder system (morning/evening plan, per-topic
+-- reminder slots) if it exists from an earlier version of the bot ----
+
+drop table if exists daily_plan;
+drop table if exists reminder_slots;
+alter table users drop column if exists reminder_time;
+alter table users drop column if exists evening_reminder_time;
+
+-- ---- Row Level Security: disabled everywhere, since only the bot's own
+-- server accesses this database (no public client-side access) ----
+
+alter table users disable row level security;
+alter table syllabus disable row level security;
+alter table streaks disable row level security;
+alter table custom_tasks disable row level security;
+alter table task_sessions disable row level security;
+alter table user_badges disable row level security;
 alter table revisions disable row level security;
+
+-- ============================================================
+-- Done. The database is ready for every feature: onboarding, custom study
+-- sessions, gamification, and spaced-repetition revisions.
+-- ============================================================

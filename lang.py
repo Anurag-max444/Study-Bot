@@ -37,36 +37,6 @@ TEXT = {
         "english": "How many hours can you study daily? (please send just the number, e.g. 4)",
         "hinglish": "Aap roz kitne ghante study kar sakte hain? (bas number bhejiye, jaise 4)",
     },
-    "ask_reminder_time": {
-        "hindi": "सुबह किस समय रिमाइंडर चाहिए? (24hr फॉर्मेट में, जैसे 07:00)",
-        "english": "What time would you like your morning reminder? (24hr format, e.g. 07:00)",
-        "hinglish": "Subah kis time reminder chahiye? (24hr format mein, jaise 07:00)",
-    },
-    "ask_evening_time": {
-        "hindi": "शाम को किस समय प्रोग्रेस चेकलिस्ट चाहिए? (24hr फॉर्मेट, जैसे 19:00)",
-        "english": "What time should I send your evening progress checklist? (24hr format, e.g. 19:00)",
-        "hinglish": "Shaam ko kis time progress checklist chahiye? (24hr format, jaise 19:00)",
-    },
-    "morning_plan_header": {
-        "hindi": "☀️ सुप्रभात {name}! आज का प्लान तैयार है:",
-        "english": "☀️ Good morning {name}! Here's today's plan:",
-        "hinglish": "☀️ Good morning {name}! Aaj ka plan taiyaar hai:",
-    },
-    "evening_checklist_header": {
-        "hindi": "🌙 शाम हो गई! आज जो पूरा किया है उसे टिक कर दीजिए:",
-        "english": "🌙 Evening check-in! Please tick off what you completed today:",
-        "hinglish": "🌙 Shaam ho gayi! Aaj jo complete kiya hai use tick kar dijiye:",
-    },
-    "no_topics_left": {
-        "hindi": "बधाई हो! आपके सिलेबस के सारे टॉपिक कवर हो गए 🎉 नया सिलेबस जोड़ने के लिए /addsyllabus टाइप कीजिए।",
-        "english": "Congratulations! You've covered your entire syllabus 🎉 Type /addsyllabus to add more topics.",
-        "hinglish": "Badhai ho! Aapka poora syllabus cover ho gaya 🎉 Naya syllabus add karne ke liye /addsyllabus type kijiye.",
-    },
-    "progress_saved": {
-        "hindi": "प्रोग्रेस सेव हो गया! कल फिर मिलते हैं 💪",
-        "english": "Progress saved! See you tomorrow 💪",
-        "hinglish": "Progress save ho gaya! Kal phir milte hain 💪",
-    },
     "progress_header": {
         "hindi": "📊 {name} की प्रोग्रेस रिपोर्ट\n\n🔥 स्ट्रीक: {streak} दिन (सबसे लंबी: {longest})\n",
         "english": "📊 {name}'s Progress Report\n\n🔥 Streak: {streak} days (longest: {longest})\n",
@@ -98,9 +68,9 @@ TEXT = {
         "hinglish": "Abhi tak koi streak start nahi hui hai. Aaj pehla topic complete karke shuruaat kijiye!",
     },
     "setup_done": {
-        "hindi": "सेटअप पूरा हो गया! ✅ अब रोज़ सुबह {time} बजे आपको प्लान मिलेगा।",
-        "english": "Setup complete! ✅ You'll receive your daily plan at {time} every morning.",
-        "hinglish": "Setup poora ho gaya! ✅ Ab roz subah {time} baje aapko plan milega.",
+        "hindi": "सेटअप पूरा हो गया! ✅ अब /addtask से अपना पहला स्टडी सेशन शेड्यूल कीजिए।",
+        "english": "Setup complete! ✅ Use /addtask to schedule your first study session.",
+        "hinglish": "Setup poora ho gaya! ✅ Ab /addtask se apna pehla study session schedule kijiye.",
     },
     "invalid_number": {
         "hindi": "कृपया केवल नंबर भेजिए।",
@@ -112,62 +82,10 @@ TEXT = {
         "english": "Please send it in the correct format, e.g. 07:00",
         "hinglish": "Kripya sahi format mein bhejiye, jaise 07:00",
     },
-
-    # ---- Per-task reminder feature ----
-    "addreminder_usage": {
-        "hindi": "इस तरह इस्तेमाल कीजिए: /addreminder HH:MM\nउदाहरण: /addreminder 14:30\n\nहर टाइम स्लॉट पर मैं आपको एक नया टॉपिक भेजूंगा, पूरा होने पर तुरंत टिक कर सकते हैं।",
-        "english": "Use it like this: /addreminder HH:MM\nExample: /addreminder 14:30\n\nAt each time slot, I'll send you one new topic — you can mark it done right away once completed.",
-        "hinglish": "Is tarah use kijiye: /addreminder HH:MM\nExample: /addreminder 14:30\n\nHar time slot par main aapko ek naya topic bhejunga, complete hone par turant tick kar sakte hain.",
-    },
-    "reminder_added": {
-        "hindi": "बढ़िया! {time} बजे का रिमाइंडर जुड़ गया है। इस समय आपको अगला टॉपिक मिलेगा।",
-        "english": "Great! A reminder at {time} has been added. You'll receive your next topic at that time.",
-        "hinglish": "Badhiya! {time} baje ka reminder add ho gaya hai. Is time par aapko agla topic milega.",
-    },
-    "reminder_removed": {
-        "hindi": "{time} बजे का रिमाइंडर हटा दिया गया है।",
-        "english": "The reminder at {time} has been removed.",
-        "hinglish": "{time} baje ka reminder remove kar diya gaya hai.",
-    },
-    "reminder_not_found": {
-        "hindi": "इस समय पर कोई रिमाइंडर सेट नहीं मिला। /myreminders से लिस्ट देखिए।",
-        "english": "No reminder found at that time. Use /myreminders to see your current list.",
-        "hinglish": "Is time par koi reminder set nahi mila. /myreminders se current list dekhiye.",
-    },
-    "reminder_list_header": {
-        "hindi": "⏰ आपके एक्टिव टास्क रिमाइंडर:\n",
-        "english": "⏰ Your active task reminders:\n",
-        "hinglish": "⏰ Aapke active task reminders:\n",
-    },
-    "reminder_list_empty": {
-        "hindi": "अभी तक कोई टास्क रिमाइंडर सेट नहीं है। /addreminder HH:MM से जोड़िए।",
-        "english": "No task reminders set yet. Add one using /addreminder HH:MM.",
-        "hinglish": "Abhi tak koi task reminder set nahi hai. /addreminder HH:MM se add kijiye.",
-    },
-    "task_reminder_header": {
-        "hindi": "📖 पढ़ाई का समय हो गया, {name}! अभी इस टॉपिक पर फोकस कीजिए:",
-        "english": "📖 Time to study, {name}! Please focus on this topic now:",
-        "hinglish": "📖 Study karne ka time ho gaya hai, {name}! Abhi is topic par focus kijiye:",
-    },
-    "task_all_done_today": {
-        "hindi": "शानदार! आज के सारे टॉपिक कवर हो चुके हैं 🎉 कल फिर मिलते हैं।",
-        "english": "Excellent! All of today's topics are covered 🎉 See you tomorrow.",
-        "hinglish": "Shaandaar! Aaj ke saare topics cover ho chuke hain 🎉 Kal phir milte hain.",
-    },
-    "mark_done_button": {
-        "hindi": "✅ पूरा हुआ",
-        "english": "✅ Mark as Done",
-        "hinglish": "✅ Complete Kiya",
-    },
     "task_time_already_passed": {
         "hindi": "⚠️ ध्यान दें: यह समय आज के लिए निकल चुका है, इसलिए यह टास्क कल इसी समय चलेगा।",
         "english": "⚠️ Note: this time has already passed for today, so this task will trigger tomorrow at this time instead.",
         "hinglish": "⚠️ Dhyan dein: yeh time aaj ke liye nikal chuka hai, isliye yeh task kal isi time par chalega.",
-    },
-    "task_marked_done": {
-        "hindi": "शाबाश, {name}! यह टॉपिक पूरा दर्ज हो गया है। अगला टास्क अगले रिमाइंडर पर मिलेगा।",
-        "english": "Well done, {name}! This topic has been marked complete. Your next task will arrive at the next reminder.",
-        "hinglish": "Shaabaash, {name}! Yeh topic complete mark ho gaya hai. Agla task agle reminder par milega.",
     },
 
     # ---- Custom task scheduling (time + topic + duration) ----
@@ -255,70 +173,61 @@ TEXT = {
         "hindi": (
             "🤖 *Study Sync — कमांड गाइड*\n\n"
             "*/start* — बॉट सेटअप करें (भाषा, नाम, एग्ज़ाम, सिलेबस)\n"
-            "*/progress* — विषय-वार प्रगति, स्ट्रीक, शील्ड और बैज देखें\n"
-            "*/badges* — अपने सारे अचीवमेंट बैज देखें\n"
-            "*/mytree* — अपना Study Tree देखें (जो पढ़ाई के साथ grow होता है)\n"
-            "*/revisions* — अपने पेंडिंग रिवीजन देखें (spaced repetition)\n"
-            "*/clear HH:MM* — पुराने बॉट मैसेज साफ़ करें (optional: कितने पीछे तक)\n"
-            "*/pdf* (या /extractquestions) — किसी PDF से MCQ questions निकालकर साफ़-सुथरी PDF बनवाएं\n"
-            "*/addreminder HH:MM* — दिन में कोई भी नया टास्क रिमाइंडर जोड़ें\n"
-            "*/removereminder HH:MM* — कोई रिमाइंडर हटाएं\n"
-            "*/myreminders* — अपने सभी एक्टिव रिमाइंडर देखें\n"
-            "*/addtask* — खुद का टॉपिक + समय + अवधि सेट करें (जैसे टाइमटेबल)\n"
+            "*/addtask* — खुद का टॉपिक + समय + अवधि सेट करें\n"
             "*/mytopics* — अपने शेड्यूल्ड टॉपिक देखें\n"
             "*/removetask HH:MM* — कोई शेड्यूल्ड टॉपिक हटाएं\n"
-            "*/studylog* — पिछले 7 दिन का पढ़ाई का रिकॉर्ड देखें (कितने घंटे, कौन से टॉपिक)\n"
+            "*/studylog* — पिछले 7 दिन का पढ़ाई का रिकॉर्ड देखें\n"
+            "*/revisions* — अपने पेंडिंग रिवीजन देखें (spaced repetition)\n"
+            "*/progress* — स्ट्रीक, शील्ड और बैज देखें\n"
+            "*/badges* — अपने सारे अचीवमेंट बैज देखें\n"
+            "*/mytree* — अपना Study Tree देखें\n"
+            "*/pdf* (या /extractquestions) — किसी PDF से MCQ questions निकालें\n"
+            "*/clear* — पुराने मैसेज साफ़ करें\n"
             "*/help* — यह गाइड फिर से देखें\n\n"
             "📌 *बॉट कैसे काम करता है:*\n"
-            "• रोज़ सुबह आपको सिलेबस से एक स्टडी प्लान मिलेगा, शाम को उसका चेकलिस्ट\n"
-            "• चाहें तो /addreminder से दिन में और भी रिमाइंडर सेट करें — हर एक पर एक नया टॉपिक मिलेगा, तुरंत टिक कर सकते हैं\n"
-            "• जब चाहें /progress से देखें कितना सिलेबस कवर हो चुका है\n"
+            "• /addtask से अपना टॉपिक, समय और अवधि सेट कीजिए — बॉट सही समय पर याद दिलाएगा\n"
+            "• समय पूरा होने पर बॉट पूछेगा कि पूरा हुआ या नहीं\n"
+            "• हर पूरे किए गए सेशन के लिए 1/3/7/15 दिन बाद रिवीजन रिमाइंडर अपने आप शेड्यूल होंगे\n"
             "• पुराने पेपर/नोट्स की PDF भेजकर questions अलग निकलवा सकते हैं"
         ),
         "english": (
             "🤖 *Study Sync — Command Guide*\n\n"
             "*/start* — Set up the bot (language, name, exam, syllabus)\n"
-            "*/progress* — View subject-wise progress, streak, shields, and badges\n"
-            "*/badges* — View all your earned achievement badges\n"
-            "*/mytree* — View your Study Tree (grows as you study)\n"
-            "*/revisions* — View your pending revisions (spaced repetition)\n"
-            "*/clear* — Clear old bot messages (optional: /clear 500 for how far back)\n"
-            "*/pdf* (or /extractquestions) — Extract MCQ questions from a PDF into a clean, formatted PDF\n"
-            "*/addreminder HH:MM* — Add a new task reminder at any time of day\n"
-            "*/removereminder HH:MM* — Remove a reminder\n"
-            "*/myreminders* — View all your active reminders\n"
-            "*/addtask* — Set your own topic + time + duration (like a timetable entry)\n"
+            "*/addtask* — Set your own topic + time + duration\n"
             "*/mytopics* — View your scheduled topics\n"
             "*/removetask HH:MM* — Remove a scheduled topic\n"
-            "*/studylog* — View your last 7 days of study history (hours studied, topics covered)\n"
+            "*/studylog* — View your last 7 days of study history\n"
+            "*/revisions* — View pending revisions (spaced repetition)\n"
+            "*/progress* — View your streak, shields, and badges\n"
+            "*/badges* — View all your earned achievement badges\n"
+            "*/mytree* — View your Study Tree\n"
+            "*/pdf* (or /extractquestions) — Extract MCQ questions from a PDF\n"
+            "*/clear* — Clear old messages from this chat\n"
             "*/help* — Show this guide again\n\n"
             "📌 *How the bot works:*\n"
-            "• Every morning you get a study plan from your syllabus, and an evening checklist for it\n"
-            "• Optionally add more reminders during the day with /addreminder — each one delivers a fresh topic you can mark done instantly\n"
-            "• Check /progress anytime to see how much of your syllabus is covered\n"
+            "• Use /addtask to set your topic, start time, and duration — the bot reminds you right on time\n"
+            "• Once the duration is up, the bot checks in to confirm you're done\n"
+            "• Every completed session automatically schedules revision reminders at 1/3/7/15 days\n"
             "• Send a PDF of practice papers/notes to extract clean, standalone questions"
         ),
         "hinglish": (
             "🤖 *Study Sync — Command Guide*\n\n"
             "*/start* — Bot setup kijiye (language, naam, exam, syllabus)\n"
-            "*/progress* — Subject-wise progress, streak, shields aur badges dekhiye\n"
-            "*/badges* — Apne saare earned achievement badges dekhiye\n"
-            "*/mytree* — Apna Study Tree dekhiye (jo padhai ke saath grow hota hai)\n"
-            "*/revisions* — Apne pending revisions dekhiye (spaced repetition)\n"
-            "*/clear* — Purane bot messages saaf kijiye (optional: /clear 500 se kitna peeche tak)\n"
-            "*/pdf* (ya /extractquestions) — Kisi PDF se MCQ questions nikaal kar clean, formatted PDF banwaiye\n"
-            "*/addreminder HH:MM* — Din mein kabhi bhi ek naya task reminder add kijiye\n"
-            "*/removereminder HH:MM* — Koi reminder hataiye\n"
-            "*/myreminders* — Apne saare active reminders dekhiye\n"
-            "*/addtask* — Apna khud ka topic + time + duration set kijiye (timetable jaisa)\n"
+            "*/addtask* — Apna khud ka topic + time + duration set kijiye\n"
             "*/mytopics* — Apne scheduled topics dekhiye\n"
             "*/removetask HH:MM* — Koi scheduled topic hataiye\n"
-            "*/studylog* — Pichhle 7 din ka padhai ka record dekhiye (kitne ghante, kaunse topics)\n"
+            "*/studylog* — Pichhle 7 din ka padhai ka record dekhiye\n"
+            "*/revisions* — Apne pending revisions dekhiye (spaced repetition)\n"
+            "*/progress* — Apni streak, shields aur badges dekhiye\n"
+            "*/badges* — Apne saare earned achievement badges dekhiye\n"
+            "*/mytree* — Apna Study Tree dekhiye\n"
+            "*/pdf* (ya /extractquestions) — Kisi PDF se MCQ questions nikaliye\n"
+            "*/clear* — Is chat ke purane messages saaf kijiye\n"
             "*/help* — Yeh guide dobara dekhiye\n\n"
             "📌 *Bot kaise kaam karta hai:*\n"
-            "• Roz subah aapko syllabus se ek study plan milega, aur shaam ko uska checklist\n"
-            "• Chahen to /addreminder se din mein aur reminders set kijiye — har ek par ek naya topic milega, turant tick kar sakte hain\n"
-            "• Jab chahe /progress se dekhiye kitna syllabus cover ho chuka hai\n"
+            "• /addtask se apna topic, start time aur duration set kijiye — bot sahi time par yaad dilayega\n"
+            "• Duration poora hone par bot check karega ki poora hua ya nahi\n"
+            "• Har complete kiye session ke liye 1/3/7/15 din baad revision reminders apne aap schedule ho jayenge\n"
             "• Purane papers/notes ki PDF bhej kar usse questions alag nikalwa sakte hain"
         ),
     },
@@ -387,18 +296,6 @@ TEXT = {
         "hindi": "अभी कोई रिवीजन पेंडिंग नहीं है। जैसे ही कोई टॉपिक पूरा करोगे, यहां रिवीजन शेड्यूल हो जाएंगे।",
         "english": "No revisions pending right now. As you complete topics, revisions will get scheduled here automatically.",
         "hinglish": "Abhi koi revision pending nahi hai. Jaise hi koi topic complete karoge, yahan revisions automatically schedule ho jayenge.",
-    },
-
-    # ---- /clear command ----
-    "clearing_in_progress": {
-        "hindi": "🧹 पुराने मैसेज साफ़ किए जा रहे हैं (सिर्फ बॉट के अपने मैसेज)... थोड़ा समय लगेगा।",
-        "english": "🧹 Clearing old messages (only the bot's own)... this may take a moment.",
-        "hinglish": "🧹 Purane messages saaf kiye ja rahe hain (sirf bot ke apne messages)... thoda time lagega.",
-    },
-    "clear_done": {
-        "hindi": "✅ हो गया! {count} मैसेज हटा दिए गए।\n\nनोट: टेलीग्राम के नियमों के अनुसार बॉट सिर्फ अपने भेजे मैसेज हटा सकता है, आपके भेजे मैसेज नहीं।",
-        "english": "✅ Done! {count} messages cleared.\n\nNote: Telegram only allows a bot to delete its own messages, not yours.",
-        "hinglish": "✅ Ho gaya! {count} messages clear kar diye.\n\nNote: Telegram ke rules ke hisaab se bot sirf apne bheje messages hata sakta hai, aapke bheje messages nahi.",
     },
 }
 

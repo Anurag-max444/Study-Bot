@@ -1,13 +1,11 @@
 import os
-from dotenv import load_dotenv
 from supabase import create_client, Client
-
-load_dotenv()
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 
 def get_user(user_id: int):
     res = supabase.table("users").select("*").eq("id", user_id).execute()
@@ -27,88 +25,6 @@ def add_syllabus_topics(user_id: int, subject: str, topics: list[str]):
     rows = [{"user_id": user_id, "subject": subject, "topic": topic} for topic in topics]
     if rows:
         supabase.table("syllabus").insert(rows).execute()
-
-
-def get_pending_topics(user_id: int, limit: int = 5):
-    res = (
-        supabase.table("syllabus")
-        .select("*")
-        .eq("user_id", user_id)
-        .eq("status", "pending")
-        .limit(limit)
-        .execute()
-    )
-    return res.data
-
-
-def mark_topic_status(topic_id: int, status: str, user_id: int = None, today_str: str = None):
-    supabase.table("syllabus").update({"status": status}).eq("id", topic_id).execute()
-    if status == "done" and user_id and today_str:
-        create_revisions_for_topic(user_id, topic_id, today_str)
-
-
-def get_users_by_morning_time(time_str: str):
-    res = (
-        supabase.table("users")
-        .select("*")
-        .eq("reminder_time", time_str)
-        .eq("onboarding_step", "done")
-        .execute()
-    )
-    return res.data
-
-
-def get_users_by_evening_time(time_str: str):
-    res = (
-        supabase.table("users")
-        .select("*")
-        .eq("evening_reminder_time", time_str)
-        .eq("onboarding_step", "done")
-        .execute()
-    )
-    return res.data
-
-
-def create_today_plan(user_id: int, today_str: str, num_topics: int = 4):
-    existing = (
-        supabase.table("daily_plan")
-        .select("*, syllabus(*)")
-        .eq("user_id", user_id)
-        .eq("plan_date", today_str)
-        .execute()
-    )
-    if existing.data:
-        return existing.data
-
-    topics = get_pending_topics(user_id, limit=num_topics)
-    if not topics:
-        return []
-
-    rows = [
-        {"user_id": user_id, "plan_date": today_str, "syllabus_id": topic["id"]}
-        for topic in topics
-    ]
-    supabase.table("daily_plan").insert(rows).execute()
-
-    result = (
-        supabase.table("daily_plan")
-        .select("*, syllabus(*)")
-        .eq("user_id", user_id)
-        .eq("plan_date", today_str)
-        .execute()
-    )
-    return result.data
-
-
-def get_today_plan(user_id: int, today_str: str):
-    res = (
-        supabase.table("daily_plan")
-        .select("*, syllabus(*)")
-        .eq("user_id", user_id)
-        .eq("plan_date", today_str)
-        .execute()
-    )
-    return res.data
 
 
 def get_streak(user_id: int):
@@ -251,36 +167,20 @@ def check_and_award_badges(user_id: int):
     return newly_awarded
 
 
-def get_progress_stats(user_id: int):
-    """Returns subject-wise done/total counts."""
-    res = supabase.table("syllabus").select("subject, status").eq("user_id", user_id).execute()
-    stats = {}
-    for row in res.data:
-        subj = row["subject"]
-        stats.setdefault(subj, {"done": 0, "total": 0})
-        stats[subj]["total"] += 1
-        if row["status"] == "done":
-            stats[subj]["done"] += 1
-    return stats
-
-
-def toggle_plan_item(plan_id: int, completed: bool, today_str: str = None):
-    supabase.table("daily_plan").update({"completed": completed}).eq("id", plan_id).execute()
-    shield_used, newly_badges = False, []
-    if completed:
-        plan = supabase.table("daily_plan").select("syllabus_id, user_id").eq("id", plan_id).execute()
-        if plan.data:
-            mark_topic_status(plan.data[0]["syllabus_id"], "done", user_id=plan.data[0]["user_id"], today_str=today_str)
-            if today_str:
-                shield_used, newly_badges = process_completion(plan.data[0]["user_id"], today_str)
-    return shield_used, newly_badges
-
-
 # ---- Custom scheduled tasks (user-defined topic + time + duration) ----
 
 def add_custom_task(user_id: int, time_str: str, topic: str, duration_minutes: int):
+    from datetime import datetime, timedelta
+
+    now = datetime.now()
+    hh, mm = map(int, time_str.split(":"))
+    candidate = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
+    if candidate <= now:
+        candidate += timedelta(days=1)  # time already passed today, schedule for tomorrow
+
     res = supabase.table("custom_tasks").insert({
         "user_id": user_id, "time": time_str, "topic": topic, "duration_minutes": duration_minutes,
+        "next_trigger_at": candidate.isoformat(),
     }).execute()
     return res.data[0] if res.data else None
 
@@ -311,11 +211,15 @@ def delete_custom_task_by_id(task_id: int):
     supabase.table("custom_tasks").delete().eq("id", task_id).execute()
 
 
-def get_users_with_custom_task_at(time_str: str):
+def get_due_custom_tasks():
+    """Catch-up safe: returns tasks whose trigger time has arrived or passed (not exact-minute match)."""
+    from datetime import datetime
+
+    now_iso = datetime.now().isoformat()
     res = (
         supabase.table("custom_tasks")
         .select("*, users(*)")
-        .eq("time", time_str)
+        .lte("next_trigger_at", now_iso)
         .execute()
     )
     return res.data
@@ -355,6 +259,10 @@ def mark_session_completed(session_id: int):
     if not session:
         return False, []
     today_str = _dt.now().strftime("%Y-%m-%d")
+
+    # Sirf /addtask (custom_tasks) se complete hue topics ke liye revision schedule hoti hai.
+    create_revisions_for_topic(session["user_id"], today_str, topic_text=session["topic_snapshot"])
+
     return process_completion(session["user_id"], today_str)
 
 
@@ -398,79 +306,6 @@ def get_study_log(user_id: int, days: int = 7):
     return res.data
 
 
-# ---- Per-task reminder slots (multiple reminders/day, one topic each) ----
-
-def add_reminder_slot(user_id: int, time_str: str):
-    supabase.table("reminder_slots").insert({"user_id": user_id, "time": time_str}).execute()
-
-
-def remove_reminder_slot(user_id: int, time_str: str):
-    res = (
-        supabase.table("reminder_slots")
-        .delete()
-        .eq("user_id", user_id)
-        .eq("time", time_str)
-        .execute()
-    )
-    return bool(res.data)
-
-
-def get_reminder_slots(user_id: int):
-    res = (
-        supabase.table("reminder_slots")
-        .select("*")
-        .eq("user_id", user_id)
-        .order("time")
-        .execute()
-    )
-    return res.data
-
-
-def get_users_with_slot_at(time_str: str):
-    res = (
-        supabase.table("reminder_slots")
-        .select("*, users(*)")
-        .eq("time", time_str)
-        .execute()
-    )
-    return res.data
-
-
-def get_or_create_next_task(user_id: int, today_str: str):
-    """Picks ONE pending topic not already assigned today, adds it to daily_plan, returns it joined."""
-    existing = get_today_plan(user_id, today_str)
-    used_syllabus_ids = {e["syllabus_id"] for e in existing}
-
-    pending = (
-        supabase.table("syllabus")
-        .select("*")
-        .eq("user_id", user_id)
-        .eq("status", "pending")
-        .execute()
-    ).data
-
-    next_topic = next((topic for topic in pending if topic["id"] not in used_syllabus_ids), None)
-    if not next_topic:
-        return None
-
-    inserted = (
-        supabase.table("daily_plan")
-        .insert({"user_id": user_id, "plan_date": today_str, "syllabus_id": next_topic["id"]})
-        .execute()
-    )
-    if not inserted.data:
-        return None
-
-    new_id = inserted.data[0]["id"]
-    result = (
-        supabase.table("daily_plan")
-        .select("*, syllabus(*)")
-        .eq("id", new_id)
-        .execute()
-    )
-    return result.data[0] if result.data else None
-
-
 def get_tree_growth_score(user_id: int):
     """Total completed activities (syllabus topics + custom task sessions) — never decreases."""
     total_done_topics = len(
@@ -498,8 +333,8 @@ def get_days_since_active(user_id: int):
 REVISION_INTERVALS = [(1, "1-day"), (3, "3-day"), (7, "7-day"), (15, "15-day")]
 
 
-def create_revisions_for_topic(user_id: int, syllabus_id: int, today_str: str):
-    """Schedules 4 future revision reminders (1/3/7/15 days) for a newly-completed topic."""
+def create_revisions_for_topic(user_id: int, today_str: str, syllabus_id: int = None, topic_text: str = None):
+    """Schedules 4 future revision reminders (1/3/7/15 days). Use syllabus_id OR topic_text."""
     from datetime import date, timedelta
 
     base = date.fromisoformat(today_str)
@@ -507,6 +342,7 @@ def create_revisions_for_topic(user_id: int, syllabus_id: int, today_str: str):
         {
             "user_id": user_id,
             "syllabus_id": syllabus_id,
+            "topic_text": topic_text,
             "due_date": (base + timedelta(days=offset)).isoformat(),
             "interval_label": label,
         }
@@ -537,11 +373,6 @@ def mark_revision_notified(revision_id: int):
 
 def mark_revision_completed(revision_id: int):
     supabase.table("revisions").update({"completed": True}).eq("id", revision_id).execute()
-
-
-def get_revision(revision_id: int):
-    res = supabase.table("revisions").select("*, syllabus(*)").eq("id", revision_id).execute()
-    return res.data[0] if res.data else None
 
 
 def get_pending_revisions(user_id: int):

@@ -109,26 +109,10 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if step == "ask_hours":
         if text.isdigit():
-            db.update_user(user_id, daily_hours=int(text), onboarding_step="ask_reminder_time")
-            await update.message.reply_text(t("ask_reminder_time", lang))
+            db.update_user(user_id, daily_hours=int(text), onboarding_step="done")
+            await update.message.reply_text(t("setup_done", lang))
         else:
             await update.message.reply_text(t("invalid_number", lang))
-        return
-
-    if step == "ask_reminder_time":
-        if len(text) == 5 and text[2] == ":" and text.replace(":", "").isdigit():
-            db.update_user(user_id, reminder_time=text, onboarding_step="ask_evening_time")
-            await update.message.reply_text(t("ask_evening_time", lang))
-        else:
-            await update.message.reply_text(t("invalid_time", lang))
-        return
-
-    if step == "ask_evening_time":
-        if len(text) == 5 and text[2] == ":" and text.replace(":", "").isdigit():
-            db.update_user(user_id, evening_reminder_time=text, onboarding_step="done")
-            await update.message.reply_text(t("setup_done", lang, time=user["reminder_time"]))
-        else:
-            await update.message.reply_text(t("invalid_time", lang))
         return
 
     # Default fallback once onboarding is done
@@ -172,63 +156,6 @@ async def handle_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(t("ask_hours", user["language"]))
 
 
-def _build_checklist_keyboard(plan_items):
-    buttons = []
-    for item in plan_items:
-        topic_name = item["syllabus"]["topic"]
-        subject = item["syllabus"]["subject"]
-        check = "✅" if item["completed"] else "⬜"
-        label = f"{check} {subject}: {topic_name}"[:60]
-        buttons.append([InlineKeyboardButton(label, callback_data=f"toggle_{item['id']}")])
-    return InlineKeyboardMarkup(buttons)
-
-
-async def send_morning_plan(context: ContextTypes.DEFAULT_TYPE):
-    now_str = datetime.now().strftime("%H:%M")
-    users = db.get_users_by_morning_time(now_str)
-    today_str = datetime.now().strftime("%Y-%m-%d")
-
-    for user in users:
-        try:
-            lang = user["language"]
-            plan_items = db.create_today_plan(user["id"], today_str)
-
-            if not plan_items:
-                await context.bot.send_message(user["id"], t("no_topics_left", lang))
-                continue
-
-            header = t("morning_plan_header", lang, name=user["name"] or "")
-            keyboard = _build_checklist_keyboard(plan_items)
-            await context.bot.send_message(user["id"], header, reply_markup=keyboard)
-        except Exception:
-            logging.exception(f"send_morning_plan failed for user {user.get('id')}")
-
-
-async def send_evening_checklist(context: ContextTypes.DEFAULT_TYPE):
-    now_str = datetime.now().strftime("%H:%M")
-    users = db.get_users_by_evening_time(now_str)
-    today_str = datetime.now().strftime("%Y-%m-%d")
-
-    for user in users:
-        try:
-            lang = user["language"]
-            plan_items = db.get_today_plan(user["id"], today_str)
-
-            if not plan_items:
-                continue
-
-            header = t("evening_checklist_header", lang)
-            if datetime.now().weekday() == 6:  # Sunday
-                stats = db.get_progress_stats(user["id"])
-                total_done = sum(s["done"] for s in stats.values())
-                total_all = sum(s["total"] for s in stats.values())
-                header += f"\n\n📅 Weekly wrap: {total_done}/{total_all} topics done overall so far."
-            keyboard = _build_checklist_keyboard(plan_items)
-            await context.bot.send_message(user["id"], header, reply_markup=keyboard)
-        except Exception:
-            logging.exception(f"send_evening_checklist failed for user {user.get('id')}")
-
-
 async def _notify_gamification(context: ContextTypes.DEFAULT_TYPE, user_id: int, lang: str, shield_used: bool, newly_badges: list):
     """Sends shield-used and new-badge notifications after any completion event."""
     if shield_used:
@@ -238,37 +165,6 @@ async def _notify_gamification(context: ContextTypes.DEFAULT_TYPE, user_id: int,
 
     for badge_name in newly_badges:
         await context.bot.send_message(user_id, t("badge_earned_notification", lang, badge_name=badge_name))
-
-
-async def toggle_checklist_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    user_id = query.from_user.id
-    plan_id = int(query.data.replace("toggle_", ""))
-
-    current_markup = query.message.reply_markup
-    new_buttons = []
-    shield_used, newly_badges = False, []
-    for row in current_markup.inline_keyboard:
-        btn = row[0]
-        if btn.callback_data == query.data:
-            is_now_checked = btn.text.startswith("✅")
-            new_completed = not is_now_checked
-            shield_used, newly_badges = db.toggle_plan_item(
-                plan_id, new_completed, today_str=datetime.now().strftime("%Y-%m-%d")
-            )
-            check = "✅" if new_completed else "⬜"
-            new_text = check + btn.text[1:]
-            new_buttons.append([InlineKeyboardButton(new_text, callback_data=btn.callback_data)])
-        else:
-            new_buttons.append(row)
-
-    await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(new_buttons))
-
-    if shield_used or newly_badges:
-        user = db.get_user(user_id)
-        lang = user["language"] if user else "hinglish"
-        await _notify_gamification(context, user_id, lang, shield_used, newly_badges)
 
 
 async def progress_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -289,17 +185,6 @@ async def progress_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     badge_count = len(db.get_user_badges(user_id))
     msg += t("badges_summary_line", lang, count=badge_count, total=len(db.BADGES))
-
-    stats = db.get_progress_stats(user_id)
-    if not stats:
-        msg += "\n" + t("no_topics_left", lang)
-    else:
-        for subject, counts in stats.items():
-            done, total = counts["done"], counts["total"]
-            pct = int((done / total) * 100) if total else 0
-            filled = pct // 10
-            bar = "▓" * filled + "░" * (10 - filled)
-            msg += f"\n{subject}: {bar} {done}/{total} ({pct}%)"
 
     await update.message.reply_text(msg)
 
@@ -438,112 +323,6 @@ def _run_health_server():
     port = int(os.environ.get("PORT", 10000))
     server = HTTPServer(("0.0.0.0", port), _HealthCheckHandler)
     server.serve_forever()
-
-
-async def addreminder_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    user = db.get_user(user_id)
-    if not user:
-        await start(update, context)
-        return
-
-    lang = user["language"]
-    if not context.args or len(context.args) != 1:
-        await update.message.reply_text(t("addreminder_usage", lang))
-        return
-
-    time_str = context.args[0].strip()
-    if not (len(time_str) == 5 and time_str[2] == ":" and time_str.replace(":", "").isdigit()):
-        await update.message.reply_text(t("invalid_time", lang))
-        return
-
-    db.add_reminder_slot(user_id, time_str)
-    await update.message.reply_text(t("reminder_added", lang, time=time_str))
-
-
-async def removereminder_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    user = db.get_user(user_id)
-    if not user:
-        await start(update, context)
-        return
-
-    lang = user["language"]
-    if not context.args or len(context.args) != 1:
-        await update.message.reply_text(t("addreminder_usage", lang))
-        return
-
-    time_str = context.args[0].strip()
-    removed = db.remove_reminder_slot(user_id, time_str)
-    if removed:
-        await update.message.reply_text(t("reminder_removed", lang, time=time_str))
-    else:
-        await update.message.reply_text(t("reminder_not_found", lang))
-
-
-async def myreminders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    user = db.get_user(user_id)
-    if not user:
-        await start(update, context)
-        return
-
-    lang = user["language"]
-    slots = db.get_reminder_slots(user_id)
-    if not slots:
-        await update.message.reply_text(t("reminder_list_empty", lang))
-        return
-
-    msg = t("reminder_list_header", lang)
-    msg += "\n".join(f"⏰ {slot['time']}" for slot in slots)
-    await update.message.reply_text(msg)
-
-
-async def send_task_reminders(context: ContextTypes.DEFAULT_TYPE):
-    """Runs every minute. For each user with a reminder_slot matching now, sends ONE next topic."""
-    now_str = datetime.now().strftime("%H:%M")
-    today_str = datetime.now().strftime("%Y-%m-%d")
-
-    slot_rows = db.get_users_with_slot_at(now_str)
-    for slot in slot_rows:
-        try:
-            user = slot.get("users")
-            if not user or user.get("onboarding_step") != "done":
-                continue
-
-            lang = user["language"]
-            task = db.get_or_create_next_task(user["id"], today_str)
-
-            if not task:
-                await context.bot.send_message(user["id"], t("task_all_done_today", lang))
-                continue
-
-            header = t("task_reminder_header", lang, name=user["name"] or "")
-            topic_line = f"\n\n📌 {task['syllabus']['subject']}: {task['syllabus']['topic']}"
-            keyboard = InlineKeyboardMarkup([
-                [InlineKeyboardButton(t("mark_done_button", lang), callback_data=f"donetask_{task['id']}")]
-            ])
-            await context.bot.send_message(user["id"], header + topic_line, reply_markup=keyboard)
-        except Exception:
-            logging.exception(f"send_task_reminders failed for slot {slot.get('id')}")
-
-
-async def mark_task_done(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    user_id = query.from_user.id
-    user = db.get_user(user_id)
-    lang = user["language"] if user else "hinglish"
-
-    plan_id = int(query.data.replace("donetask_", ""))
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    shield_used, newly_badges = db.toggle_plan_item(plan_id, True, today_str=today_str)
-
-    await query.edit_message_text(
-        query.message.text + "\n\n✅",
-    )
-    await context.bot.send_message(user_id, t("task_marked_done", lang, name=user["name"] or ""))
-    await _notify_gamification(context, user_id, lang, shield_used, newly_badges)
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -831,36 +610,32 @@ async def mark_revision_done(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Deletes the bot's own recent messages in this chat to declutter it.
-    Telegram bots can only delete their OWN messages in private chats — the
-    user's own messages can't be touched by any bot, no matter what."""
-    import asyncio as _asyncio
-
-    user_id = update.effective_user.id
-    user = db.get_user(user_id)
-    lang = user["language"] if user else "hinglish"
+    """Silently deletes recent messages in this chat (both the bot's and the user's,
+    since Telegram allows a bot to delete any message in a private chat within 48h).
+    No status message is sent before, during, or after — fully silent."""
     chat_id = update.effective_chat.id
     current_id = update.message.message_id
 
     lookback = 300
     if context.args and context.args[0].isdigit():
-        lookback = min(int(context.args[0]), 2000)  # sensible upper cap
+        lookback = min(int(context.args[0]), 2000)
 
-    status_msg = await update.message.reply_text(t("clearing_in_progress", lang))
+    all_ids = list(range(current_id, max(current_id - lookback, 0), -1))
 
-    deleted_count = 0
-    for mid in range(current_id, max(current_id - lookback, 0), -1):
+    # Batch delete in chunks of 100 (Telegram's max per deleteMessages call) — this
+    # silently skips any IDs that don't exist or can't be deleted, no error raised,
+    # and is far faster than deleting one message at a time.
+    for i in range(0, len(all_ids), 100):
+        chunk = all_ids[i:i + 100]
         try:
-            await context.bot.delete_message(chat_id, mid)
-            deleted_count += 1
+            await context.bot.delete_messages(chat_id, chunk)
         except Exception:
-            pass  # not the bot's message, too old (48h+), or already gone — skip silently
-        await _asyncio.sleep(0.03)  # gentle pacing to avoid Telegram flood limits
-
-    try:
-        await status_msg.edit_text(t("clear_done", lang, count=deleted_count))
-    except Exception:
-        await context.bot.send_message(chat_id, t("clear_done", lang, count=deleted_count))
+            # Fallback for older library/API versions without bulk delete support
+            for mid in chunk:
+                try:
+                    await context.bot.delete_message(chat_id, mid)
+                except Exception:
+                    pass
 
 
 def main():
@@ -875,9 +650,6 @@ def main():
     app.add_handler(CommandHandler("clear", clear_command))
     app.add_handler(CommandHandler("extractquestions", extractquestions_command))
     app.add_handler(CommandHandler("pdf", extractquestions_command))
-    app.add_handler(CommandHandler("addreminder", addreminder_command))
-    app.add_handler(CommandHandler("removereminder", removereminder_command))
-    app.add_handler(CommandHandler("myreminders", myreminders_command))
     app.add_handler(CommandHandler("addtask", addtask_command))
     app.add_handler(CommandHandler("mytopics", mytopics_command))
     app.add_handler(CommandHandler("removetask", removetask_command))
@@ -885,17 +657,11 @@ def main():
     app.add_handler(CallbackQueryHandler(language_chosen, pattern="^lang_"))
     app.add_handler(CallbackQueryHandler(exam_chosen, pattern="^exam_"))
     app.add_handler(MessageHandler(filters.Document.PDF, handle_pdf))
-    app.add_handler(CallbackQueryHandler(toggle_checklist_item, pattern="^toggle_"))
-    app.add_handler(CallbackQueryHandler(mark_task_done, pattern="^donetask_"))
     app.add_handler(CallbackQueryHandler(mark_session_done, pattern="^sessiondone_"))
     app.add_handler(CallbackQueryHandler(mark_revision_done, pattern="^revdone_"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
     app.add_error_handler(global_error_handler)
 
-    # Har minute check karo ki kisi user ka reminder time ab hua hai kya
-    app.job_queue.run_repeating(send_morning_plan, interval=60, first=5)
-    app.job_queue.run_repeating(send_evening_checklist, interval=60, first=5)
-    app.job_queue.run_repeating(send_task_reminders, interval=60, first=5)
     app.job_queue.run_repeating(send_custom_task_start, interval=60, first=5)
     app.job_queue.run_repeating(check_due_followups, interval=60, first=5)
     app.job_queue.run_repeating(send_due_revisions, interval=60, first=5)
