@@ -1,4 +1,5 @@
 import os
+import html
 import logging
 import threading
 from datetime import datetime
@@ -10,7 +11,9 @@ from dotenv import load_dotenv
 # If db is imported first, those env vars are still unset -> crash.
 load_dotenv()
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import (
+    Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup,
+)
 from telegram.ext import (
     Application, CommandHandler, MessageHandler, CallbackQueryHandler,
     ContextTypes, filters,
@@ -26,6 +29,45 @@ from default_syllabus import DEFAULT_SYLLABUS
 logging.basicConfig(level=logging.INFO)
 BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
+EXAM_LABELS = {"ssc_cgl": "SSC CGL", "jee_mains": "JEE Mains", "custom": "Custom / Other"}
+
+
+def esc(value) -> str:
+    """Escapes user-provided text before it goes into an HTML-parse-mode message,
+    so a stray '<', '>' or '&' in someone's name/topic can never break the message
+    or get rendered as a tag."""
+    return html.escape(str(value))
+
+
+def _progress_bar(value: float, total: float, length: int = 10) -> str:
+    """Renders a simple block progress bar, e.g. '███████░░░'. Safe against total=0."""
+    pct = 0 if not total else max(0, min(1, value / total))
+    filled = round(pct * length)
+    return "█" * filled + "░" * (length - filled)
+
+
+def _parse_hours(text: str):
+    """Parses daily-study-hours input. Accepts whole or decimal numbers (e.g. '4', '3.5').
+    Returns a float in a sane 0.5–18 range, or None if invalid."""
+    text = text.strip().replace(",", ".")
+    try:
+        hours = float(text)
+    except ValueError:
+        return None
+    if hours < 0.5 or hours > 18:
+        return None
+    return round(hours, 1)
+
+
+def main_menu_keyboard() -> ReplyKeyboardMarkup:
+    """Persistent bottom menu with the 4 most-used commands. The button text is the
+    literal command string, so Telegram routes a tap straight to the matching
+    CommandHandler — no extra routing logic needed."""
+    return ReplyKeyboardMarkup(
+        [["/addtask", "/mytopics"], ["/mytree", "/help"]],
+        resize_keyboard=True,
+    )
+
 
 # ---------- /start ----------
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -33,8 +75,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = db.get_user(user_id)
 
     if user:
+        keyboard = main_menu_keyboard() if user["onboarding_step"] == "done" else None
         await update.message.reply_text(
-            t("welcome", user["language"], name=user["name"] or "dost")
+            t("welcome", user["language"], name=user["name"] or "dost"),
+            reply_markup=keyboard,
         )
         return
 
@@ -66,13 +110,15 @@ async def exam_chosen(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = db.get_user(user_id)
     exam = query.data.replace("exam_", "")  # ssc_cgl / jee_mains / custom
 
-    db.update_user(user_id, exam=exam, onboarding_step="ask_syllabus_pdf")
+    # Default syllabus (if we have one for this exam) loads automatically —
+    # no PDF upload step anymore, straight to the last onboarding question.
+    db.update_user(user_id, exam=exam, onboarding_step="ask_hours")
 
     if exam in DEFAULT_SYLLABUS:
         for subject, topics in DEFAULT_SYLLABUS[exam].items():
             db.add_syllabus_topics(user_id, subject, topics)
 
-    await query.edit_message_text(t("ask_syllabus_pdf", user["language"]))
+    await query.edit_message_text(t("ask_hours", user["language"]))
 
 
 # ---------- Text message router (handles onboarding steps) ----------
@@ -94,6 +140,11 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
 
     if step == "ask_name":
+        # Name validation: non-empty, reasonable length, not a stray command.
+        if not text or len(text) > 40 or text.startswith("/"):
+            await update.message.reply_text(t("invalid_name", lang))
+            return
+
         db.update_user(user_id, name=text, onboarding_step="ask_exam")
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton("SSC CGL", callback_data="exam_ssc_cgl")],
@@ -103,61 +154,47 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(t("ask_exam", lang), reply_markup=keyboard)
         return
 
+    # Legacy fallback: anyone whose account is still stuck on the old
+    # (now removed) syllabus-PDF step gets auto-advanced instead of stalling.
     if step == "ask_syllabus_pdf":
-        if text.lower() == "skip":
-            db.update_user(user_id, onboarding_step="ask_hours")
-            await update.message.reply_text(t("ask_hours", lang))
-        else:
-            await update.message.reply_text(t("ask_syllabus_pdf", lang))
+        db.update_user(user_id, onboarding_step="ask_hours")
+        await update.message.reply_text(t("ask_hours", lang))
         return
 
     if step == "ask_hours":
-        if text.isdigit():
-            db.update_user(user_id, daily_hours=int(text), onboarding_step="done")
-            await update.message.reply_text(t("setup_done", lang))
-        else:
-            await update.message.reply_text(t("invalid_number", lang))
+        hours = _parse_hours(text)
+        if hours is None:
+            await update.message.reply_text(t("invalid_hours", lang))
+            return
+
+        db.update_user(user_id, daily_hours=hours, onboarding_step="done")
+        exam_label = EXAM_LABELS.get(user["exam"], user["exam"] or "-")
+        await update.message.reply_text(
+            t("setup_done", lang, name=esc(user["name"] or ""), exam=exam_label, hours=hours),
+            parse_mode="HTML",
+            reply_markup=main_menu_keyboard(),
+        )
         return
 
     # Default fallback once onboarding is done
     await update.message.reply_text(t("welcome", lang, name=user["name"] or "dost"))
 
 
-# ---------- PDF upload handler (syllabus, during onboarding) ----------
+# ---------- PDF upload handler (question extraction, via /extractquestions or /pdf) ----------
 async def handle_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     user = db.get_user(user_id)
     if not user:
         return
 
-    # Question-extraction flow (triggered via /extractquestions)
+    # Question-extraction flow (triggered via /extractquestions or /pdf)
     if context.user_data.get("awaiting_question_pdf"):
         await handle_question_pdf(update, context, user)
         return
 
-    # Syllabus flow (only during onboarding step)
-    if user["onboarding_step"] != "ask_syllabus_pdf":
-        return
-
-    file = await update.message.document.get_file()
-    path = f"/tmp/{user_id}_syllabus.pdf"
-    await file.download_to_drive(path)
-
-    import pdfplumber
-    topics = []
-    with pdfplumber.open(path) as pdf:
-        for page in pdf.pages:
-            text = page.extract_text() or ""
-            for line in text.split("\n"):
-                line = line.strip()
-                if 3 < len(line) < 80:
-                    topics.append(line)
-
-    if topics:
-        db.add_syllabus_topics(user_id, "Custom (from PDF)", topics[:50])
-
-    db.update_user(user_id, onboarding_step="ask_hours")
-    await update.message.reply_text(t("ask_hours", user["language"]))
+    # No other feature currently expects a PDF upload — quietly ignore it
+    # instead of doing nothing with zero feedback.
+    await update.message.reply_text(t("ask_question_pdf", user["language"]))
 
 
 async def _notify_gamification(context: ContextTypes.DEFAULT_TYPE, user_id: int, lang: str, shield_used: bool, newly_badges: list):
@@ -165,10 +202,14 @@ async def _notify_gamification(context: ContextTypes.DEFAULT_TYPE, user_id: int,
     if shield_used:
         streak = db.get_streak(user_id)
         remaining = streak["shields_available"] if streak else 0
-        await context.bot.send_message(user_id, t("shield_used_notification", lang, remaining=remaining))
+        await context.bot.send_message(
+            user_id, t("shield_used_notification", lang, remaining=remaining), parse_mode="HTML"
+        )
 
     for badge_name in newly_badges:
-        await context.bot.send_message(user_id, t("badge_earned_notification", lang, badge_name=badge_name))
+        await context.bot.send_message(
+            user_id, t("badge_earned_notification", lang, badge_name=badge_name), parse_mode="HTML"
+        )
 
 
 async def progress_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -184,13 +225,16 @@ async def progress_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     longest = streak["longest_streak"] if streak else 0
     shields = streak["shields_available"] if streak else 0
 
-    msg = t("progress_header", lang, name=user["name"] or "", streak=streak_count, longest=longest)
-    msg += t("shields_line", lang, shields=shields)
-
+    total_badges = len(db.BADGES)
     badge_count = len(db.get_user_badges(user_id))
-    msg += t("badges_summary_line", lang, count=badge_count, total=len(db.BADGES))
+    shields_visual = "🛡️" * shields + "▫️" * (3 - shields)
+    badges_bar = _progress_bar(badge_count, total_badges)
 
-    await update.message.reply_text(msg)
+    msg = t("progress_header", lang, name=esc(user["name"] or ""), streak=streak_count, longest=longest)
+    msg += t("shields_line", lang, shields_visual=shields_visual, shields=shields)
+    msg += t("badges_summary_line", lang, bar=badges_bar, count=badge_count, total=total_badges)
+
+    await update.message.reply_text(msg, parse_mode="HTML")
 
 
 async def badges_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -205,11 +249,15 @@ async def badges_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     earned_codes = {b["badge_code"] for b in earned}
 
     msg = t("badges_header", lang, count=len(earned_codes), total=len(db.BADGES))
-    for code, meta in db.BADGES.items():
-        mark = "✅" if code in earned_codes else "🔒"
-        msg += f"\n{mark} {meta['name']}"
+    items = list(db.BADGES.items())
+    for i in range(0, len(items), 2):
+        row = []
+        for code, meta in items[i:i + 2]:
+            mark = "✅" if code in earned_codes else "🔒"
+            row.append(f"{mark} {meta['name']}")
+        msg += "\n" + "   ".join(row)
 
-    await update.message.reply_text(msg)
+    await update.message.reply_text(msg, parse_mode="HTML")
 
 
 async def mytree_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -231,12 +279,13 @@ async def mytree_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     generate_tree_image(stage, wilted, out_path)
 
     stage_name = get_stage_name(stage, lang)
-    caption = t("tree_caption", lang, stage=stage_name, score=growth_score)
+    bar = _progress_bar(min(growth_score, 60), 60)
+    caption = t("tree_caption", lang, stage=stage_name, score=growth_score, bar=bar)
     if wilted:
         caption += "\n\n" + t("tree_wilted_warning", lang)
 
     with open(out_path, "rb") as f:
-        await update.message.reply_photo(photo=f, caption=caption)
+        await update.message.reply_photo(photo=f, caption=caption, parse_mode="HTML")
 
 
 async def extractquestions_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -417,8 +466,11 @@ async def mytopics_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     msg = t("mytopics_header", lang)
-    msg += "\n".join(f"⏰ {task['time']} — {task['topic']} ({task['duration_minutes']} min)" for task in tasks)
-    await update.message.reply_text(msg)
+    msg += "\n".join(
+        f"⏰ {esc(task['time'])} — <b>{esc(task['topic'])}</b> ({task['duration_minutes']} min)"
+        for task in tasks
+    )
+    await update.message.reply_text(msg, parse_mode="HTML")
 
 
 async def removetask_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -458,12 +510,12 @@ async def studylog_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     total_minutes = 0
     for s in sessions:
         mark = "✅" if s["completed"] else "⏳"
-        msg += f"{mark} {s['session_date']} — {s['topic_snapshot']} ({s['duration_minutes']} min)\n"
+        msg += f"{mark} {esc(s['session_date'])} — <b>{esc(s['topic_snapshot'])}</b> ({s['duration_minutes']} min)\n"
         if s["completed"]:
             total_minutes += s["duration_minutes"]
 
     msg += t("studylog_total", lang, hours=round(total_minutes / 60, 1))
-    await update.message.reply_text(msg)
+    await update.message.reply_text(msg, parse_mode="HTML")
 
 
 async def send_custom_task_start(context: ContextTypes.DEFAULT_TYPE):
@@ -490,8 +542,12 @@ async def send_custom_task_start(context: ContextTypes.DEFAULT_TYPE):
 
             await context.bot.send_message(
                 user["id"],
-                t("task_session_start", lang, name=user["name"] or "", topic=row["topic"], duration=row["duration_minutes"]),
-                parse_mode="Markdown",
+                t(
+                    "task_session_start", lang,
+                    name=esc(user["name"] or ""), topic=esc(row["topic"]),
+                    duration=row["duration_minutes"],
+                ),
+                parse_mode="HTML",
             )
             # Follow-up ka time database me save ho gaya hai (create_task_session ke andar) —
             # ab yeh check_due_followups job khud uthayega, chahe bot beech me restart bhi ho jaye.
@@ -515,8 +571,9 @@ async def check_due_followups(context: ContextTypes.DEFAULT_TYPE):
             ])
             await context.bot.send_message(
                 user["id"],
-                t("task_session_followup", lang, topic=session["topic_snapshot"]),
+                t("task_session_followup", lang, topic=esc(session["topic_snapshot"])),
                 reply_markup=keyboard,
+                parse_mode="HTML",
             )
             db.mark_followup_sent(session["id"])
         except Exception:
@@ -563,12 +620,12 @@ async def revisions_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = t("revisions_header", lang)
     for r in pending:
         if r.get("syllabus"):
-            label = f"{r['syllabus']['subject']}: {r['syllabus']['topic']}"
+            label = f"{esc(r['syllabus']['subject'])}: {esc(r['syllabus']['topic'])}"
         else:
-            label = r.get("topic_text") or "—"
-        msg += f"\n📅 {r['due_date']} ({r['interval_label']}) — {label}"
+            label = esc(r.get("topic_text") or "—")
+        msg += f"\n📅 {r['due_date']} ({r['interval_label']}) — <b>{label}</b>"
 
-    await update.message.reply_text(msg)
+    await update.message.reply_text(msg, parse_mode="HTML")
 
 
 async def send_due_revisions(context: ContextTypes.DEFAULT_TYPE):
@@ -582,9 +639,9 @@ async def send_due_revisions(context: ContextTypes.DEFAULT_TYPE):
 
             lang = user["language"]
             if rev.get("syllabus"):
-                label = f"{rev['syllabus']['subject']}: {rev['syllabus']['topic']}"
+                label = f"{esc(rev['syllabus']['subject'])}: {esc(rev['syllabus']['topic'])}"
             else:
-                label = rev.get("topic_text") or "—"
+                label = esc(rev.get("topic_text") or "—")
 
             keyboard = InlineKeyboardMarkup([
                 [InlineKeyboardButton(t("revision_done_button", lang), callback_data=f"revdone_{rev['id']}")]
@@ -593,6 +650,7 @@ async def send_due_revisions(context: ContextTypes.DEFAULT_TYPE):
                 user["id"],
                 t("revision_due_message", lang, interval=rev["interval_label"], topic=label),
                 reply_markup=keyboard,
+                parse_mode="HTML",
             )
             db.mark_revision_notified(rev["id"])
         except Exception:

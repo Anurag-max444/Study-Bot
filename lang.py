@@ -18,29 +18,34 @@ TEXT = {
         "hinglish": "Sabse pehle bataiye, aap kis language mein baat karna pasand karenge?",
     },
     "ask_name": {
-        "hindi": "आपका नाम क्या है?",
-        "english": "What's your name?",
-        "hinglish": "Aapka naam kya hai?",
+        "hindi": "📝 Step 1/3 — आपका नाम क्या है?",
+        "english": "📝 Step 1/3 — What's your name?",
+        "hinglish": "📝 Step 1/3 — Aapka naam kya hai?",
+    },
+    "invalid_name": {
+        "hindi": "कृपया एक सही नाम भेजिए (1–40 अक्षर, बिना / से शुरू हुए)।",
+        "english": "Please send a valid name (1–40 characters, not starting with /).",
+        "hinglish": "Kripya ek sahi naam bhejiye (1–40 characters, / se shuru na ho).",
     },
     "ask_exam": {
-        "hindi": "आप किस परीक्षा की तैयारी कर रहे हैं?",
-        "english": "Which exam are you preparing for?",
-        "hinglish": "Aap kis exam ki taiyaari kar rahe hain?",
-    },
-    "ask_syllabus_pdf": {
-        "hindi": "अगर आपके पास सिलेबस की PDF है तो कृपया भेज दीजिए, वरना 'skip' टाइप कीजिए — मैं डिफ़ॉल्ट सिलेबस लोड कर दूंगा।",
-        "english": "If you have a syllabus PDF, please send it here, otherwise type 'skip' — I'll load the default syllabus for you.",
-        "hinglish": "Agar aapke paas syllabus ki PDF hai to kripya bhej dijiye, warna 'skip' type kijiye — main default syllabus load kar dunga.",
+        "hindi": "🎯 Step 2/3 — आप किस परीक्षा की तैयारी कर रहे हैं?",
+        "english": "🎯 Step 2/3 — Which exam are you preparing for?",
+        "hinglish": "🎯 Step 2/3 — Aap kis exam ki taiyaari kar rahe hain?",
     },
     "ask_hours": {
-        "hindi": "आप रोज़ कितने घंटे पढ़ाई कर सकते हैं? (सिर्फ नंबर भेजिए, जैसे 4)",
-        "english": "How many hours can you study daily? (please send just the number, e.g. 4)",
-        "hinglish": "Aap roz kitne ghante study kar sakte hain? (bas number bhejiye, jaise 4)",
+        "hindi": "⏱ Step 3/3 — आप रोज़ कितने घंटे पढ़ाई कर सकते हैं? (नंबर भेजिए, जैसे 4 या 3.5)",
+        "english": "⏱ Step 3/3 — How many hours can you study daily? (send a number, e.g. 4 or 3.5)",
+        "hinglish": "⏱ Step 3/3 — Aap roz kitne ghante study kar sakte hain? (number bhejiye, jaise 4 ya 3.5)",
+    },
+    "invalid_hours": {
+        "hindi": "कृपया 0.5 से 18 के बीच एक नंबर भेजिए (जैसे 4 या 3.5)।",
+        "english": "Please send a number between 0.5 and 18 (e.g. 4 or 3.5).",
+        "hinglish": "Kripya 0.5 se 18 ke beech ek number bhejiye (jaise 4 ya 3.5).",
     },
     "progress_header": {
-        "hindi": "📊 {name} की प्रोग्रेस रिपोर्ट\n\n🔥 स्ट्रीक: {streak} दिन (सबसे लंबी: {longest})\n",
-        "english": "📊 {name}'s Progress Report\n\n🔥 Streak: {streak} days (longest: {longest})\n",
-        "hinglish": "📊 {name} ki Progress Report\n\n🔥 Streak: {streak} din (sabse lambi: {longest})\n",
+        "hindi": "📊 <b>{name} की प्रोग्रेस</b>\n\n🔥 स्ट्रीक: <b>{streak} दिन</b> (सबसे लंबी: {longest})\n",
+        "english": "📊 <b>{name}'s progress</b>\n\n🔥 Streak: <b>{streak} days</b> (longest: {longest})\n",
+        "hinglish": "📊 <b>{name} ka progress</b>\n\n🔥 Streak: <b>{streak} din</b> (sabse lambi: {longest})\n",
     },
     "ask_question_pdf": {
         "hindi": "जिस PDF से questions निकालने हैं वो भेज दीजिए (MCQ फॉर्मेट में — options a, b, c, d के साथ)।",
@@ -68,9 +73,24 @@ TEXT = {
         "hinglish": "Abhi tak koi streak start nahi hui hai. Aaj pehla topic complete karke shuruaat kijiye!",
     },
     "setup_done": {
-        "hindi": "सेटअप पूरा हो गया! ✅ अब /addtask से अपना पहला स्टडी सेशन शेड्यूल कीजिए।",
-        "english": "Setup complete! ✅ Use /addtask to schedule your first study session.",
-        "hinglish": "Setup poora ho gaya! ✅ Ab /addtask se apna pehla study session schedule kijiye.",
+        "hindi": (
+            "✅ <b>सेटअप पूरा हो गया, {name}!</b>\n\n"
+            "🎯 Exam: {exam}\n"
+            "⏱ रोज़ाना लक्ष्य: {hours} घंटे\n\n"
+            "अब /addtask से अपना पहला स्टडी सेशन शेड्यूल कीजिए, या नीचे दिए बटन इस्तेमाल कीजिए।"
+        ),
+        "english": (
+            "✅ <b>Setup complete, {name}!</b>\n\n"
+            "🎯 Exam: {exam}\n"
+            "⏱ Daily target: {hours} hours\n\n"
+            "Use /addtask to schedule your first study session, or use the buttons below."
+        ),
+        "hinglish": (
+            "✅ <b>Setup poora ho gaya, {name}!</b>\n\n"
+            "🎯 Exam: {exam}\n"
+            "⏱ Daily target: {hours} ghante\n\n"
+            "Ab /addtask se apna pehla study session schedule kijiye, ya neeche diye buttons use kijiye."
+        ),
     },
     "invalid_number": {
         "hindi": "कृपया केवल नंबर भेजिए।",
@@ -115,9 +135,9 @@ TEXT = {
         "hinglish": "Badhiya! {time} baje '{topic}' ke liye {duration} minute ka session set ho gaya hai. ✅\n(Yeh ek baar chalega — agle din phir chahiye to dobara /addtask kijiye)",
     },
     "mytopics_header": {
-        "hindi": "📋 आपके शेड्यूल्ड टॉपिक:\n",
-        "english": "📋 Your scheduled topics:\n",
-        "hinglish": "📋 Aapke scheduled topics:\n",
+        "hindi": "📋 <b>आपके शेड्यूल्ड टॉपिक</b>\n",
+        "english": "📋 <b>Your scheduled topics</b>\n",
+        "hinglish": "📋 <b>Aapke scheduled topics</b>\n",
     },
     "mytopics_empty": {
         "hindi": "अभी तक कोई टॉपिक शेड्यूल नहीं है। /addtask से जोड़िए।",
@@ -135,14 +155,14 @@ TEXT = {
         "hinglish": "Is time par koi task nahi mila. /mytopics se list dekhiye.",
     },
     "task_session_start": {
-        "hindi": "📖 समय हो गया, {name}! अभी शुरू कीजिए:\n\n📌 *{topic}*\n⏱ {duration} मिनट के लिए\n\nमैं {duration} मिनट बाद पूछूंगा कि पूरा हुआ या नहीं।",
-        "english": "📖 Time to begin, {name}!\n\n📌 *{topic}*\n⏱ For {duration} minutes\n\nI'll check back in {duration} minutes to see if you're done.",
-        "hinglish": "📖 Time ho gaya hai, {name}! Abhi shuru kijiye:\n\n📌 *{topic}*\n⏱ {duration} minute ke liye\n\nMain {duration} minute baad puchunga ki poora hua ya nahi.",
+        "hindi": "📖 समय हो गया, {name}! अभी शुरू कीजिए:\n\n📌 <b>{topic}</b>\n⏱ {duration} मिनट के लिए\n\nमैं {duration} मिनट बाद पूछूंगा कि पूरा हुआ या नहीं।",
+        "english": "📖 Time to begin, {name}!\n\n📌 <b>{topic}</b>\n⏱ For {duration} minutes\n\nI'll check back in {duration} minutes to see if you're done.",
+        "hinglish": "📖 Time ho gaya hai, {name}! Abhi shuru kijiye:\n\n📌 <b>{topic}</b>\n⏱ {duration} minute ke liye\n\nMain {duration} minute baad puchunga ki poora hua ya nahi.",
     },
     "task_session_followup": {
-        "hindi": "⏰ समय पूरा हो गया! क्या आपने '{topic}' पूरा कर लिया?",
-        "english": "⏰ Time's up! Did you finish '{topic}'?",
-        "hinglish": "⏰ Time poora ho gaya! Kya aapne '{topic}' poora kar liya?",
+        "hindi": "⏰ समय पूरा हो गया! क्या आपने '<b>{topic}</b>' पूरा कर लिया?",
+        "english": "⏰ Time's up! Did you finish '<b>{topic}</b>'?",
+        "hinglish": "⏰ Time poora ho gaya! Kya aapne '<b>{topic}</b>' poora kar liya?",
     },
     "session_done_button": {
         "hindi": "✅ हां, पूरा हुआ",
@@ -155,9 +175,9 @@ TEXT = {
         "hinglish": "Shaandaar, {name}! '{topic}' aapke study log mein record ho gaya hai. 💪",
     },
     "studylog_header": {
-        "hindi": "📊 पिछले {days} दिन का स्टडी लॉग\n\n",
-        "english": "📊 Study log — last {days} days\n\n",
-        "hinglish": "📊 Pichhle {days} din ka study log\n\n",
+        "hindi": "📊 <b>पिछले {days} दिन का स्टडी लॉग</b>\n\n",
+        "english": "📊 <b>Study log — last {days} days</b>\n\n",
+        "hinglish": "📊 <b>Pichhle {days} din ka study log</b>\n\n",
     },
     "studylog_empty": {
         "hindi": "अभी तक कोई सेशन दर्ज नहीं हुआ। /addtask से एक टॉपिक शेड्यूल कीजिए।",
@@ -188,7 +208,8 @@ TEXT = {
             "• /addtask से अपना टॉपिक, समय और अवधि सेट कीजिए — बॉट सही समय पर याद दिलाएगा\n"
             "• समय पूरा होने पर बॉट पूछेगा कि पूरा हुआ या नहीं\n"
             "• हर पूरे किए गए सेशन के लिए 1/3/7/15 दिन बाद रिवीजन रिमाइंडर अपने आप शेड्यूल होंगे\n"
-            "• पुराने पेपर/नोट्स की PDF भेजकर questions अलग निकलवा सकते हैं"
+            "• पुराने पेपर/नोट्स की PDF भेजकर questions अलग निकलवा सकते हैं\n"
+            "• नीचे दिए क्विक-मेनू बटन से भी सबसे इस्तेमाल होने वाले कमांड्स एक टैप में खुलते हैं"
         ),
         "english": (
             "🤖 *Study Sync — Command Guide*\n\n"
@@ -208,7 +229,8 @@ TEXT = {
             "• Use /addtask to set your topic, start time, and duration — the bot reminds you right on time\n"
             "• Once the duration is up, the bot checks in to confirm you're done\n"
             "• Every completed session automatically schedules revision reminders at 1/3/7/15 days\n"
-            "• Send a PDF of practice papers/notes to extract clean, standalone questions"
+            "• Send a PDF of practice papers/notes to extract clean, standalone questions\n"
+            "• The quick-menu buttons below give you the most-used commands in one tap"
         ),
         "hinglish": (
             "🤖 *Study Sync — Command Guide*\n\n"
@@ -228,42 +250,43 @@ TEXT = {
             "• /addtask se apna topic, start time aur duration set kijiye — bot sahi time par yaad dilayega\n"
             "• Duration poora hone par bot check karega ki poora hua ya nahi\n"
             "• Har complete kiye session ke liye 1/3/7/15 din baad revision reminders apne aap schedule ho jayenge\n"
-            "• Purane papers/notes ki PDF bhej kar usse questions alag nikalwa sakte hain"
+            "• Purane papers/notes ki PDF bhej kar usse questions alag nikalwa sakte hain\n"
+            "• Neeche diye quick-menu buttons se bhi sabse zyada use hone wale commands ek tap mein khulte hain"
         ),
     },
 
     # ---- Gamification: streak shields + achievement badges ----
     "shields_line": {
-        "hindi": "🛡️ शील्ड: {shields}/3\n",
-        "english": "🛡️ Shields: {shields}/3\n",
-        "hinglish": "🛡️ Shields: {shields}/3\n",
+        "hindi": "{shields_visual}  Shields: {shields}/3\n",
+        "english": "{shields_visual}  Shields: {shields}/3\n",
+        "hinglish": "{shields_visual}  Shields: {shields}/3\n",
     },
     "badges_summary_line": {
-        "hindi": "🎖️ बैज: {count}/{total} अनलॉक\n",
-        "english": "🎖️ Badges: {count}/{total} unlocked\n",
-        "hinglish": "🎖️ Badges: {count}/{total} unlock hue\n",
+        "hindi": "🎖️ Badges: [{bar}] {count}/{total}\n",
+        "english": "🎖️ Badges: [{bar}] {count}/{total}\n",
+        "hinglish": "🎖️ Badges: [{bar}] {count}/{total}\n",
     },
     "shield_used_notification": {
-        "hindi": "🛡️ आपकी स्ट्रीक बच गई! एक दिन मिस होने पर भी शील्ड ने उसे बचा लिया। बची हुई शील्ड: {remaining}",
-        "english": "🛡️ Your streak was saved! A shield covered the missed day. Shields remaining: {remaining}",
-        "hinglish": "🛡️ Aapki streak bach gayi! Ek din miss hone par bhi shield ne use bacha liya. Bachi hui shields: {remaining}",
+        "hindi": "🛡️ <b>आपकी स्ट्रीक बच गई!</b> एक दिन मिस होने पर भी शील्ड ने उसे बचा लिया। बची हुई शील्ड: {remaining}",
+        "english": "🛡️ <b>Your streak was saved!</b> A shield covered the missed day. Shields remaining: {remaining}",
+        "hinglish": "🛡️ <b>Aapki streak bach gayi!</b> Ek din miss hone par bhi shield ne use bacha liya. Bachi hui shields: {remaining}",
     },
     "badge_earned_notification": {
-        "hindi": "🎉 नया बैज अनलॉक हुआ!\n{badge_name}\n\n/badges से सारे बैज देखिए।",
-        "english": "🎉 New badge unlocked!\n{badge_name}\n\nSee all your badges with /badges.",
-        "hinglish": "🎉 Naya badge unlock hua!\n{badge_name}\n\n/badges se saare badges dekhiye.",
+        "hindi": "🎉 <b>नया बैज अनलॉक हुआ!</b>\n{badge_name}\n\n/badges से सारे बैज देखिए।",
+        "english": "🎉 <b>New badge unlocked!</b>\n{badge_name}\n\nSee all your badges with /badges.",
+        "hinglish": "🎉 <b>Naya badge unlock hua!</b>\n{badge_name}\n\n/badges se saare badges dekhiye.",
     },
     "badges_header": {
-        "hindi": "🎖️ आपके बैज ({count}/{total})\n",
-        "english": "🎖️ Your Badges ({count}/{total})\n",
-        "hinglish": "🎖️ Aapke Badges ({count}/{total})\n",
+        "hindi": "🎖️ <b>आपके बैज</b> ({count}/{total})\n",
+        "english": "🎖️ <b>Your badges</b> ({count}/{total})\n",
+        "hinglish": "🎖️ <b>Aapke badges</b> ({count}/{total})\n",
     },
 
     # ---- Study Tree ----
     "tree_caption": {
-        "hindi": "🌳 आपका Study Tree\n\nStage: {stage}\nGrowth Score: {score}\n\nहर टॉपिक पूरा करने पर यह और बढ़ेगा!",
-        "english": "🌳 Your Study Tree\n\nStage: {stage}\nGrowth Score: {score}\n\nIt grows a little more every time you complete a topic!",
-        "hinglish": "🌳 Aapka Study Tree\n\nStage: {stage}\nGrowth Score: {score}\n\nHar topic complete karne par yeh aur badhega!",
+        "hindi": "🌳 <b>आपका Study Tree</b>\n\nStage: {stage}\n[{bar}] Growth Score: {score}\n\nहर टॉपिक पूरा करने पर यह और बढ़ेगा!",
+        "english": "🌳 <b>Your Study Tree</b>\n\nStage: {stage}\n[{bar}] Growth score: {score}\n\nIt grows a little more every time you complete a topic!",
+        "hinglish": "🌳 <b>Aapka Study Tree</b>\n\nStage: {stage}\n[{bar}] Growth score: {score}\n\nHar topic complete karne par yeh aur badhega!",
     },
     "tree_wilted_warning": {
         "hindi": "⚠️ लगता है कुछ दिनों से पढ़ाई नहीं हुई — पेड़ मुरझा रहा है। वापस आ जाओ, इसे फिर से हरा-भरा कर दो! 🌱",
@@ -273,9 +296,9 @@ TEXT = {
 
     # ---- Spaced repetition revisions ----
     "revision_due_message": {
-        "hindi": "🧠 रिवीजन टाइम! ({interval})\n\n📌 {topic}\n\nक्या यह अभी भी याद है? दोबारा देख लो।",
-        "english": "🧠 Revision time! ({interval})\n\n📌 {topic}\n\nStill remember this? Give it a quick review.",
-        "hinglish": "🧠 Revision time! ({interval})\n\n📌 {topic}\n\nAbhi bhi yaad hai kya? Ek baar dobara dekh lo.",
+        "hindi": "🧠 <b>रिवीजन टाइम!</b> ({interval})\n\n📌 <b>{topic}</b>\n\nक्या यह अभी भी याद है? दोबारा देख लो।",
+        "english": "🧠 <b>Revision time!</b> ({interval})\n\n📌 <b>{topic}</b>\n\nStill remember this? Give it a quick review.",
+        "hinglish": "🧠 <b>Revision time!</b> ({interval})\n\n📌 <b>{topic}</b>\n\nAbhi bhi yaad hai kya? Ek baar dobara dekh lo.",
     },
     "revision_done_button": {
         "hindi": "✅ रिवाइज़ कर लिया",
@@ -288,9 +311,9 @@ TEXT = {
         "hinglish": "Badhiya! Revision record ho gaya. 🧠",
     },
     "revisions_header": {
-        "hindi": "🧠 आपके पेंडिंग रिवीजन:\n",
-        "english": "🧠 Your pending revisions:\n",
-        "hinglish": "🧠 Aapke pending revisions:\n",
+        "hindi": "🧠 <b>आपके पेंडिंग रिवीजन</b>\n",
+        "english": "🧠 <b>Your pending revisions</b>\n",
+        "hinglish": "🧠 <b>Aapke pending revisions</b>\n",
     },
     "revisions_empty": {
         "hindi": "अभी कोई रिवीजन पेंडिंग नहीं है। जैसे ही कोई टॉपिक पूरा करोगे, यहां रिवीजन शेड्यूल हो जाएंगे।",
