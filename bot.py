@@ -178,7 +178,9 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # Default fallback once onboarding is done
-    await update.message.reply_text(t("welcome", lang, name=user["name"] or "dost"))
+    await update.message.reply_text(
+        t("welcome", lang, name=esc(user["name"] or "dost")), parse_mode="HTML"
+    )
 
 
 # ---------- PDF upload handler (question extraction, via /extractquestions or /pdf) ----------
