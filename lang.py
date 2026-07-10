@@ -281,6 +281,61 @@ TEXT = {
         "english": "🎖️ <b>Your badges</b> ({count}/{total})\n",
         "hinglish": "🎖️ <b>Aapke badges</b> ({count}/{total})\n",
     },
+    "badges_tap_hint": {
+        "hindi": "\nकिसी भी बैज पर टैप करके देखिए वो कैसे मिलता है 👇",
+        "english": "\nTap any badge to see how to unlock it 👇",
+        "hinglish": "\nKisi bhi badge par tap karke dekhiye wo kaise milta hai 👇",
+    },
+    "badge_unlocked_popup": {
+        "hindi": "✅ {name} — हासिल किया!\n\n{hint}",
+        "english": "✅ {name} — Unlocked!\n\n{hint}",
+        "hinglish": "✅ {name} — Unlock ho gaya!\n\n{hint}",
+    },
+    "badge_locked_popup": {
+        "hindi": "🔒 {name} — अभी लॉक है\n\n{hint}",
+        "english": "🔒 {name} — Still locked\n\n{hint}",
+        "hinglish": "🔒 {name} — Abhi locked hai\n\n{hint}",
+    },
+    "badge_hint_streak_7": {
+        "hindi": "लगातार 7 दिन पढ़ाई करके मिलता है।",
+        "english": "Earned by studying for 7 days in a row.",
+        "hinglish": "Lagatar 7 din padhai karke milta hai.",
+    },
+    "badge_hint_streak_30": {
+        "hindi": "लगातार 30 दिन पढ़ाई करके मिलता है।",
+        "english": "Earned by studying for 30 days in a row.",
+        "hinglish": "Lagatar 30 din padhai karke milta hai.",
+    },
+    "badge_hint_topics_10": {
+        "hindi": "10 टॉपिक पूरे करने पर मिलता है।",
+        "english": "Earned by completing 10 topics.",
+        "hinglish": "10 topics complete karne par milta hai.",
+    },
+    "badge_hint_topics_50": {
+        "hindi": "50 टॉपिक पूरे करने पर मिलता है।",
+        "english": "Earned by completing 50 topics.",
+        "hinglish": "50 topics complete karne par milta hai.",
+    },
+    "badge_hint_topics_100": {
+        "hindi": "100 टॉपिक पूरे करने पर मिलता है।",
+        "english": "Earned by completing 100 topics.",
+        "hinglish": "100 topics complete karne par milta hai.",
+    },
+    "badge_hint_night_owl": {
+        "hindi": "रात 10 बजे के बाद कोई सेशन पूरा करने पर मिलता है।",
+        "english": "Earned by completing a session after 10 PM.",
+        "hinglish": "Raat 10 baje ke baad koi session complete karne par milta hai.",
+    },
+    "badge_hint_early_bird": {
+        "hindi": "सुबह 7 बजे से पहले कोई सेशन पूरा करने पर मिलता है।",
+        "english": "Earned by completing a session before 7 AM.",
+        "hinglish": "Subah 7 baje se pehle koi session complete karne par milta hai.",
+    },
+    "badge_hint_shield_saver": {
+        "hindi": "पहली बार स्ट्रीक शील्ड इस्तेमाल होने पर मिलता है।",
+        "english": "Earned the first time a streak shield saves your streak.",
+        "hinglish": "Pehli baar streak shield use hone par milta hai.",
+    },
 
     # ---- Study Tree ----
     "tree_caption": {

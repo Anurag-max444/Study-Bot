@@ -249,15 +249,43 @@ async def badges_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     earned_codes = {b["badge_code"] for b in earned}
 
     msg = t("badges_header", lang, count=len(earned_codes), total=len(db.BADGES))
+    msg += t("badges_tap_hint", lang)
+
     items = list(db.BADGES.items())
+    rows = []
     for i in range(0, len(items), 2):
         row = []
         for code, meta in items[i:i + 2]:
             mark = "✅" if code in earned_codes else "🔒"
-            row.append(f"{mark} {meta['name']}")
-        msg += "\n" + "   ".join(row)
+            row.append(InlineKeyboardButton(f"{mark} {meta['name']}", callback_data=f"badgeinfo_{code}"))
+        rows.append(row)
 
-    await update.message.reply_text(msg, parse_mode="HTML")
+    await update.message.reply_text(msg, parse_mode="HTML", reply_markup=InlineKeyboardMarkup(rows))
+
+
+async def badge_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Tapping a badge in the /badges grid shows its unlock condition as a popup,
+    without editing or cluttering the message itself."""
+    query = update.callback_query
+    user_id = query.from_user.id
+    user = db.get_user(user_id)
+    lang = user["language"] if user else "hinglish"
+
+    code = query.data.replace("badgeinfo_", "")
+    meta = db.BADGES.get(code)
+    if not meta:
+        await query.answer()
+        return
+
+    earned_codes = {b["badge_code"] for b in db.get_user_badges(user_id)} if user else set()
+    hint = t(f"badge_hint_{code}", lang)
+
+    if code in earned_codes:
+        popup = t("badge_unlocked_popup", lang, name=meta["name"], hint=hint)
+    else:
+        popup = t("badge_locked_popup", lang, name=meta["name"], hint=hint)
+
+    await query.answer(text=popup, show_alert=True)
 
 
 async def mytree_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -721,6 +749,7 @@ def main():
     app.add_handler(MessageHandler(filters.Document.PDF, handle_pdf))
     app.add_handler(CallbackQueryHandler(mark_session_done, pattern="^sessiondone_"))
     app.add_handler(CallbackQueryHandler(mark_revision_done, pattern="^revdone_"))
+    app.add_handler(CallbackQueryHandler(badge_info, pattern="^badgeinfo_"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
     app.add_error_handler(global_error_handler)
 
