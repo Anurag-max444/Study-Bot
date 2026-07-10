@@ -77,8 +77,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user:
         keyboard = main_menu_keyboard() if user["onboarding_step"] == "done" else None
         await update.message.reply_text(
-            t("welcome", user["language"], name=user["name"] or "dost"),
+            t("welcome", user["language"], name=esc(user["name"] or "dost")),
             reply_markup=keyboard,
+            parse_mode="HTML",
         )
         return
 
@@ -88,7 +89,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("English", callback_data="lang_english")],
         [InlineKeyboardButton("Hinglish", callback_data="lang_hinglish")],
     ])
-    await update.message.reply_text(t("ask_language", "hinglish"), reply_markup=keyboard)
+    await update.message.reply_text(t("ask_language", "hinglish"), reply_markup=keyboard, parse_mode="HTML")
 
 
 # ---------- Language selection ----------
@@ -410,7 +411,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     user = db.get_user(user_id)
     lang = user["language"] if user else "hinglish"
-    await update.message.reply_text(t("help_text", lang), parse_mode="Markdown")
+    await update.message.reply_text(t("help_text", lang), parse_mode="HTML")
 
 
 def _parse_duration_to_minutes(text: str):

@@ -8,14 +8,29 @@ jitni Hindi/English — 'aap' use karo, casual 'tu/tera' avoid karo.
 
 TEXT = {
     "welcome": {
-        "hindi": "नमस्ते {name}! 📚 मैं Study Sync हूँ, आपका स्टडी पार्टनर। सभी कमांड्स के लिए /help टाइप कीजिए।",
-        "english": "Hello {name}! 📚 I'm Study Sync, your study partner. Type /help to see everything I can do.",
-        "hinglish": "Namaste {name}! 📚 Main Study Sync hoon, aapka study partner. Sabhi commands dekhne ke liye /help type kijiye.",
+        "hindi": "नमस्ते {name}! 📚 <b>मैं Study Sync हूँ</b>, आपका स्टडी पार्टनर।\n\nसभी कमांड्स के लिए /help टाइप कीजिए।",
+        "english": "Hello {name}! 📚 <b>I'm Study Sync</b>, your study partner.\n\nType /help to see everything I can do.",
+        "hinglish": "Namaste {name}! 📚 <b>Main Study Sync hoon</b>, aapka study partner.\n\nSabhi commands dekhne ke liye /help type kijiye.",
     },
     "ask_language": {
-        "hindi": "सबसे पहले बताइए, आप किस भाषा में बात करना पसंद करेंगे?",
-        "english": "First, which language would you prefer to chat in?",
-        "hinglish": "Sabse pehle bataiye, aap kis language mein baat karna pasand karenge?",
+        "hindi": (
+            "📚 <b>Study Sync में आपका स्वागत है!</b>\n"
+            "आपका पर्सनल स्टडी पार्टनर — शेड्यूलिंग, रिवीजन रिमाइंडर और प्रोग्रेस ट्रैकिंग सब एक जगह।\n"
+            "━━━━━━━━━━\n"
+            "सबसे पहले बताइए, आप किस भाषा में बात करना पसंद करेंगे?"
+        ),
+        "english": (
+            "📚 <b>Welcome to Study Sync!</b>\n"
+            "Your personal study partner — scheduling, revision reminders, and progress tracking, all in one place.\n"
+            "━━━━━━━━━━\n"
+            "First, which language would you prefer to chat in?"
+        ),
+        "hinglish": (
+            "📚 <b>Study Sync mein aapka swagat hai!</b>\n"
+            "Aapka personal study partner — scheduling, revision reminders aur progress tracking sab ek jagah.\n"
+            "━━━━━━━━━━\n"
+            "Sabse pehle bataiye, aap kis language mein baat karna pasand karenge?"
+        ),
     },
     "ask_name": {
         "hindi": "📝 Step 1/3 — आपका नाम क्या है?",
@@ -43,9 +58,9 @@ TEXT = {
         "hinglish": "Kripya 0.5 se 18 ke beech ek number bhejiye (jaise 4 ya 3.5).",
     },
     "progress_header": {
-        "hindi": "📊 <b>{name} की प्रोग्रेस</b>\n\n🔥 स्ट्रीक: <b>{streak} दिन</b> (सबसे लंबी: {longest})\n",
-        "english": "📊 <b>{name}'s progress</b>\n\n🔥 Streak: <b>{streak} days</b> (longest: {longest})\n",
-        "hinglish": "📊 <b>{name} ka progress</b>\n\n🔥 Streak: <b>{streak} din</b> (sabse lambi: {longest})\n",
+        "hindi": "📊 <b>{name} की प्रोग्रेस</b>\n━━━━━━━━━━\n🔥 स्ट्रीक: <b>{streak} दिन</b> (सबसे लंबी: {longest})\n",
+        "english": "📊 <b>{name}'s progress</b>\n━━━━━━━━━━\n🔥 Streak: <b>{streak} days</b> (longest: {longest})\n",
+        "hinglish": "📊 <b>{name} ka progress</b>\n━━━━━━━━━━\n🔥 Streak: <b>{streak} din</b> (sabse lambi: {longest})\n",
     },
     "ask_question_pdf": {
         "hindi": "जिस PDF से questions निकालने हैं वो भेज दीजिए (MCQ फॉर्मेट में — options a, b, c, d के साथ)।",
@@ -74,19 +89,22 @@ TEXT = {
     },
     "setup_done": {
         "hindi": (
-            "✅ <b>सेटअप पूरा हो गया, {name}!</b>\n\n"
+            "✅ <b>सेटअप पूरा हो गया, {name}!</b>\n"
+            "━━━━━━━━━━\n"
             "🎯 Exam: {exam}\n"
             "⏱ रोज़ाना लक्ष्य: {hours} घंटे\n\n"
             "अब /addtask से अपना पहला स्टडी सेशन शेड्यूल कीजिए, या नीचे दिए बटन इस्तेमाल कीजिए।"
         ),
         "english": (
-            "✅ <b>Setup complete, {name}!</b>\n\n"
+            "✅ <b>Setup complete, {name}!</b>\n"
+            "━━━━━━━━━━\n"
             "🎯 Exam: {exam}\n"
             "⏱ Daily target: {hours} hours\n\n"
             "Use /addtask to schedule your first study session, or use the buttons below."
         ),
         "hinglish": (
-            "✅ <b>Setup poora ho gaya, {name}!</b>\n\n"
+            "✅ <b>Setup poora ho gaya, {name}!</b>\n"
+            "━━━━━━━━━━\n"
             "🎯 Exam: {exam}\n"
             "⏱ Daily target: {hours} ghante\n\n"
             "Ab /addtask se apna pehla study session schedule kijiye, ya neeche diye buttons use kijiye."
@@ -135,9 +153,9 @@ TEXT = {
         "hinglish": "Badhiya! {time} baje '{topic}' ke liye {duration} minute ka session set ho gaya hai. ✅\n(Yeh ek baar chalega — agle din phir chahiye to dobara /addtask kijiye)",
     },
     "mytopics_header": {
-        "hindi": "📋 <b>आपके शेड्यूल्ड टॉपिक</b>\n",
-        "english": "📋 <b>Your scheduled topics</b>\n",
-        "hinglish": "📋 <b>Aapke scheduled topics</b>\n",
+        "hindi": "📋 <b>आपके शेड्यूल्ड टॉपिक</b>\n━━━━━━━━━━\n",
+        "english": "📋 <b>Your scheduled topics</b>\n━━━━━━━━━━\n",
+        "hinglish": "📋 <b>Aapke scheduled topics</b>\n━━━━━━━━━━\n",
     },
     "mytopics_empty": {
         "hindi": "अभी तक कोई टॉपिक शेड्यूल नहीं है। /addtask से जोड़िए।",
@@ -175,9 +193,9 @@ TEXT = {
         "hinglish": "Shaandaar, {name}! '{topic}' aapke study log mein record ho gaya hai. 💪",
     },
     "studylog_header": {
-        "hindi": "📊 <b>पिछले {days} दिन का स्टडी लॉग</b>\n\n",
-        "english": "📊 <b>Study log — last {days} days</b>\n\n",
-        "hinglish": "📊 <b>Pichhle {days} din ka study log</b>\n\n",
+        "hindi": "📊 <b>पिछले {days} दिन का स्टडी लॉग</b>\n━━━━━━━━━━\n",
+        "english": "📊 <b>Study log — last {days} days</b>\n━━━━━━━━━━\n",
+        "hinglish": "📊 <b>Pichhle {days} din ka study log</b>\n━━━━━━━━━━\n",
     },
     "studylog_empty": {
         "hindi": "अभी तक कोई सेशन दर्ज नहीं हुआ। /addtask से एक टॉपिक शेड्यूल कीजिए।",
@@ -191,20 +209,26 @@ TEXT = {
     },
     "help_text": {
         "hindi": (
-            "🤖 *Study Sync — कमांड गाइड*\n\n"
-            "*/start* — बॉट सेटअप करें (भाषा, नाम, एग्ज़ाम, सिलेबस)\n"
-            "*/addtask* — खुद का टॉपिक + समय + अवधि सेट करें\n"
-            "*/mytopics* — अपने शेड्यूल्ड टॉपिक देखें\n"
-            "*/removetask HH:MM* — कोई शेड्यूल्ड टॉपिक हटाएं\n"
-            "*/studylog* — पिछले 7 दिन का पढ़ाई का रिकॉर्ड देखें\n"
-            "*/revisions* — अपने पेंडिंग रिवीजन देखें (spaced repetition)\n"
-            "*/progress* — स्ट्रीक, शील्ड और बैज देखें\n"
-            "*/badges* — अपने सारे अचीवमेंट बैज देखें\n"
-            "*/mytree* — अपना Study Tree देखें\n"
-            "*/pdf* (या /extractquestions) — किसी PDF से MCQ questions निकालें\n"
-            "*/clear* — पुराने मैसेज साफ़ करें\n"
-            "*/help* — यह गाइड फिर से देखें\n\n"
-            "📌 *बॉट कैसे काम करता है:*\n"
+            "🤖 <b>Study Sync — कमांड गाइड</b>\n"
+            "━━━━━━━━━━\n\n"
+            "⚙️ <b>सेटअप</b>\n"
+            "/start — बॉट सेटअप करें (भाषा, नाम, एग्ज़ाम, सिलेबस)\n\n"
+            "📖 <b>स्टडी शेड्यूल</b>\n"
+            "/addtask — खुद का टॉपिक + समय + अवधि सेट करें\n"
+            "/mytopics — अपने शेड्यूल्ड टॉपिक देखें\n"
+            "/removetask HH:MM — कोई शेड्यूल्ड टॉपिक हटाएं\n"
+            "/studylog — पिछले 7 दिन का पढ़ाई का रिकॉर्ड देखें\n"
+            "/revisions — अपने पेंडिंग रिवीजन देखें (spaced repetition)\n\n"
+            "📊 <b>प्रोग्रेस</b>\n"
+            "/progress — स्ट्रीक, शील्ड और बैज देखें\n"
+            "/badges — अपने सारे अचीवमेंट बैज देखें\n"
+            "/mytree — अपना Study Tree देखें\n\n"
+            "🛠️ <b>यूटिलिटी</b>\n"
+            "/pdf (या /extractquestions) — किसी PDF से MCQ questions निकालें\n"
+            "/clear — पुराने मैसेज साफ़ करें\n"
+            "/help — यह गाइड फिर से देखें\n\n"
+            "━━━━━━━━━━\n"
+            "📌 <b>बॉट कैसे काम करता है:</b>\n"
             "• /addtask से अपना टॉपिक, समय और अवधि सेट कीजिए — बॉट सही समय पर याद दिलाएगा\n"
             "• समय पूरा होने पर बॉट पूछेगा कि पूरा हुआ या नहीं\n"
             "• हर पूरे किए गए सेशन के लिए 1/3/7/15 दिन बाद रिवीजन रिमाइंडर अपने आप शेड्यूल होंगे\n"
@@ -212,20 +236,26 @@ TEXT = {
             "• नीचे दिए क्विक-मेनू बटन से भी सबसे इस्तेमाल होने वाले कमांड्स एक टैप में खुलते हैं"
         ),
         "english": (
-            "🤖 *Study Sync — Command Guide*\n\n"
-            "*/start* — Set up the bot (language, name, exam, syllabus)\n"
-            "*/addtask* — Set your own topic + time + duration\n"
-            "*/mytopics* — View your scheduled topics\n"
-            "*/removetask HH:MM* — Remove a scheduled topic\n"
-            "*/studylog* — View your last 7 days of study history\n"
-            "*/revisions* — View pending revisions (spaced repetition)\n"
-            "*/progress* — View your streak, shields, and badges\n"
-            "*/badges* — View all your earned achievement badges\n"
-            "*/mytree* — View your Study Tree\n"
-            "*/pdf* (or /extractquestions) — Extract MCQ questions from a PDF\n"
-            "*/clear* — Clear old messages from this chat\n"
-            "*/help* — Show this guide again\n\n"
-            "📌 *How the bot works:*\n"
+            "🤖 <b>Study Sync — Command Guide</b>\n"
+            "━━━━━━━━━━\n\n"
+            "⚙️ <b>Setup</b>\n"
+            "/start — Set up the bot (language, name, exam, syllabus)\n\n"
+            "📖 <b>Study schedule</b>\n"
+            "/addtask — Set your own topic + time + duration\n"
+            "/mytopics — View your scheduled topics\n"
+            "/removetask HH:MM — Remove a scheduled topic\n"
+            "/studylog — View your last 7 days of study history\n"
+            "/revisions — View pending revisions (spaced repetition)\n\n"
+            "📊 <b>Progress</b>\n"
+            "/progress — View your streak, shields, and badges\n"
+            "/badges — View all your earned achievement badges\n"
+            "/mytree — View your Study Tree\n\n"
+            "🛠️ <b>Utility</b>\n"
+            "/pdf (or /extractquestions) — Extract MCQ questions from a PDF\n"
+            "/clear — Clear old messages from this chat\n"
+            "/help — Show this guide again\n\n"
+            "━━━━━━━━━━\n"
+            "📌 <b>How the bot works:</b>\n"
             "• Use /addtask to set your topic, start time, and duration — the bot reminds you right on time\n"
             "• Once the duration is up, the bot checks in to confirm you're done\n"
             "• Every completed session automatically schedules revision reminders at 1/3/7/15 days\n"
@@ -233,20 +263,26 @@ TEXT = {
             "• The quick-menu buttons below give you the most-used commands in one tap"
         ),
         "hinglish": (
-            "🤖 *Study Sync — Command Guide*\n\n"
-            "*/start* — Bot setup kijiye (language, naam, exam, syllabus)\n"
-            "*/addtask* — Apna khud ka topic + time + duration set kijiye\n"
-            "*/mytopics* — Apne scheduled topics dekhiye\n"
-            "*/removetask HH:MM* — Koi scheduled topic hataiye\n"
-            "*/studylog* — Pichhle 7 din ka padhai ka record dekhiye\n"
-            "*/revisions* — Apne pending revisions dekhiye (spaced repetition)\n"
-            "*/progress* — Apni streak, shields aur badges dekhiye\n"
-            "*/badges* — Apne saare earned achievement badges dekhiye\n"
-            "*/mytree* — Apna Study Tree dekhiye\n"
-            "*/pdf* (ya /extractquestions) — Kisi PDF se MCQ questions nikaliye\n"
-            "*/clear* — Is chat ke purane messages saaf kijiye\n"
-            "*/help* — Yeh guide dobara dekhiye\n\n"
-            "📌 *Bot kaise kaam karta hai:*\n"
+            "🤖 <b>Study Sync — Command Guide</b>\n"
+            "━━━━━━━━━━\n\n"
+            "⚙️ <b>Setup</b>\n"
+            "/start — Bot setup kijiye (language, naam, exam, syllabus)\n\n"
+            "📖 <b>Study schedule</b>\n"
+            "/addtask — Apna khud ka topic + time + duration set kijiye\n"
+            "/mytopics — Apne scheduled topics dekhiye\n"
+            "/removetask HH:MM — Koi scheduled topic hataiye\n"
+            "/studylog — Pichhle 7 din ka padhai ka record dekhiye\n"
+            "/revisions — Apne pending revisions dekhiye (spaced repetition)\n\n"
+            "📊 <b>Progress</b>\n"
+            "/progress — Apni streak, shields aur badges dekhiye\n"
+            "/badges — Apne saare earned achievement badges dekhiye\n"
+            "/mytree — Apna Study Tree dekhiye\n\n"
+            "🛠️ <b>Utility</b>\n"
+            "/pdf (ya /extractquestions) — Kisi PDF se MCQ questions nikaliye\n"
+            "/clear — Is chat ke purane messages saaf kijiye\n"
+            "/help — Yeh guide dobara dekhiye\n\n"
+            "━━━━━━━━━━\n"
+            "📌 <b>Bot kaise kaam karta hai:</b>\n"
             "• /addtask se apna topic, start time aur duration set kijiye — bot sahi time par yaad dilayega\n"
             "• Duration poora hone par bot check karega ki poora hua ya nahi\n"
             "• Har complete kiye session ke liye 1/3/7/15 din baad revision reminders apne aap schedule ho jayenge\n"
@@ -277,9 +313,9 @@ TEXT = {
         "hinglish": "🎉 <b>Naya badge unlock hua!</b>\n{badge_name}\n\n/badges se saare badges dekhiye.",
     },
     "badges_header": {
-        "hindi": "🎖️ <b>आपके बैज</b> ({count}/{total})\n",
-        "english": "🎖️ <b>Your badges</b> ({count}/{total})\n",
-        "hinglish": "🎖️ <b>Aapke badges</b> ({count}/{total})\n",
+        "hindi": "🎖️ <b>आपके बैज</b> ({count}/{total})\n━━━━━━━━━━",
+        "english": "🎖️ <b>Your badges</b> ({count}/{total})\n━━━━━━━━━━",
+        "hinglish": "🎖️ <b>Aapke badges</b> ({count}/{total})\n━━━━━━━━━━",
     },
     "badges_tap_hint": {
         "hindi": "\nकिसी भी बैज पर टैप करके देखिए वो कैसे मिलता है 👇",
@@ -339,9 +375,9 @@ TEXT = {
 
     # ---- Study Tree ----
     "tree_caption": {
-        "hindi": "🌳 <b>आपका Study Tree</b>\n\nStage: {stage}\n[{bar}] Growth Score: {score}\n\nहर टॉपिक पूरा करने पर यह और बढ़ेगा!",
-        "english": "🌳 <b>Your Study Tree</b>\n\nStage: {stage}\n[{bar}] Growth score: {score}\n\nIt grows a little more every time you complete a topic!",
-        "hinglish": "🌳 <b>Aapka Study Tree</b>\n\nStage: {stage}\n[{bar}] Growth score: {score}\n\nHar topic complete karne par yeh aur badhega!",
+        "hindi": "🌳 <b>आपका Study Tree</b>\n━━━━━━━━━━\nStage: {stage}\n[{bar}] Growth Score: {score}\n\nहर टॉपिक पूरा करने पर यह और बढ़ेगा!",
+        "english": "🌳 <b>Your Study Tree</b>\n━━━━━━━━━━\nStage: {stage}\n[{bar}] Growth score: {score}\n\nIt grows a little more every time you complete a topic!",
+        "hinglish": "🌳 <b>Aapka Study Tree</b>\n━━━━━━━━━━\nStage: {stage}\n[{bar}] Growth score: {score}\n\nHar topic complete karne par yeh aur badhega!",
     },
     "tree_wilted_warning": {
         "hindi": "⚠️ लगता है कुछ दिनों से पढ़ाई नहीं हुई — पेड़ मुरझा रहा है। वापस आ जाओ, इसे फिर से हरा-भरा कर दो! 🌱",
@@ -366,9 +402,9 @@ TEXT = {
         "hinglish": "Badhiya! Revision record ho gaya. 🧠",
     },
     "revisions_header": {
-        "hindi": "🧠 <b>आपके पेंडिंग रिवीजन</b>\n",
-        "english": "🧠 <b>Your pending revisions</b>\n",
-        "hinglish": "🧠 <b>Aapke pending revisions</b>\n",
+        "hindi": "🧠 <b>आपके पेंडिंग रिवीजन</b>\n━━━━━━━━━━",
+        "english": "🧠 <b>Your pending revisions</b>\n━━━━━━━━━━",
+        "hinglish": "🧠 <b>Aapke pending revisions</b>\n━━━━━━━━━━",
     },
     "revisions_empty": {
         "hindi": "अभी कोई रिवीजन पेंडिंग नहीं है। जैसे ही कोई टॉपिक पूरा करोगे, यहां रिवीजन शेड्यूल हो जाएंगे।",
