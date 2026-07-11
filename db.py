@@ -393,16 +393,19 @@ def get_pending_revisions(user_id: int):
     return res.data
 
 
-# ---- Personal vault (single-owner) ----
-# Only the Telegram file_id is stored — Telegram hosts the actual image, so
-# this survives bot restarts/redeploys without needing persistent disk.
+# ---- Personal vault (multiple images) ----
+# Only each image's Telegram file_id is stored — Telegram hosts the actual
+# file, so this survives bot restarts/redeploys without needing persistent disk.
 
-def save_vault_image(file_id: str):
-    supabase.table("admin_vault").upsert({"id": 1, "file_id": file_id}).execute()
+def add_vault_image(file_id: str):
+    res = supabase.table("vault_images").insert({"file_id": file_id}).execute()
+    return res.data[0] if res.data else None
 
 
-def get_vault_image():
-    res = supabase.table("admin_vault").select("*").eq("id", 1).execute()
-    if res.data and res.data[0].get("file_id"):
-        return res.data[0]["file_id"]
-    return None
+def get_vault_images():
+    res = supabase.table("vault_images").select("*").order("created_at").execute()
+    return res.data
+
+
+def delete_vault_image(image_id: int):
+    supabase.table("vault_images").delete().eq("id", image_id).execute()

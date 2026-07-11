@@ -2,7 +2,7 @@ import os
 import html
 import logging
 import threading
-from datetime import datetime, time as dtime
+from datetime import datetime, time as dtime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from dotenv import load_dotenv
 
@@ -30,10 +30,10 @@ import report_generator
 logging.basicConfig(level=logging.INFO)
 BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
-# Personal vault (hidden, single-owner feature — see near the bottom of this
-# file for the commands themselves; deliberately not mentioned in /help,
-# BotFather's command menu, or the persistent keyboard).
-ADMIN_USER_ID = int(os.environ.get("ADMIN_USER_ID", "0") or "0")
+# Personal vault (hidden feature — see near the bottom of this file for the
+# commands themselves; deliberately not mentioned in /help, BotFather's
+# command menu, or the persistent keyboard). Password-only by design so it
+# works from any phone/any Telegram account, not just one fixed user.
 VAULT_PASSWORD = os.environ.get("VAULT_PASSWORD", "PASS123")
 
 EXAM_LABELS = {"ssc_cgl": "SSC CGL", "jee_mains": "JEE Mains", "custom": "Custom / Other"}
@@ -813,61 +813,122 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ============================================================
-# Personal vault — hidden, single-owner feature.
+# Personal vault — hidden feature, password-only access (works from any
+# phone/any Telegram account — not tied to a specific user ID on purpose).
 # Not registered anywhere visible: no /help entry, no BotFather command-menu
-# entry, no persistent-keyboard button. Access is gated two ways:
-#   1. Telegram user ID must match ADMIN_USER_ID — anyone else who somehow
-#      guesses the command name gets zero response, identical to sending an
-#      unrecognized command.
-#   2. A password on top of that, in case someone else ever gets into the
-#      admin's own Telegram session.
-# The image itself is never stored on disk — only Telegram's own file_id is
-# kept in the database, so it survives restarts/redeploys on any host.
+# entry, no persistent-keyboard button.
+#
+# Because a shared password is now the ONLY gate (by design), a simple
+# brute-force lockout is included: 5 wrong attempts in a row locks the vault
+# for 15 minutes. The image bytes are never stored on disk — only Telegram's
+# own file_id is kept in the database, so it survives restarts/redeploys on
+# any host.
 # ============================================================
-_VAULT_VIEW_COMMAND = "admin"
-_VAULT_SAVE_COMMAND = "admins"
+_VAULT_VIEW_COMMAND = "kj47q"
+_VAULT_SAVE_COMMAND = "kj47qs"
+_VAULT_MAX_ATTEMPTS = 5
+_VAULT_LOCKOUT_MINUTES = 15
+
+
+def _vault_locked(context: ContextTypes.DEFAULT_TYPE) -> bool:
+    locked_until = context.bot_data.get("vault_locked_until")
+    return bool(locked_until and datetime.now() < locked_until)
+
+
+def _vault_register_failure(context: ContextTypes.DEFAULT_TYPE):
+    attempts = context.bot_data.get("vault_failed_attempts", 0) + 1
+    context.bot_data["vault_failed_attempts"] = attempts
+    if attempts >= _VAULT_MAX_ATTEMPTS:
+        context.bot_data["vault_locked_until"] = datetime.now() + timedelta(minutes=_VAULT_LOCKOUT_MINUTES)
+        context.bot_data["vault_failed_attempts"] = 0
+
+
+def _vault_register_success(context: ContextTypes.DEFAULT_TYPE):
+    context.bot_data["vault_failed_attempts"] = 0
+    context.bot_data.pop("vault_locked_until", None)
 
 
 async def _vault_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not ADMIN_USER_ID or update.effective_user.id != ADMIN_USER_ID:
-        return  # dead silence — indistinguishable from an unknown command
-    context.user_data["awaiting_vault_password"] = True
+    if _vault_locked(context):
+        await update.message.reply_text("⏳")
+        return
+    context.user_data["awaiting_vault_password"] = "view"
     await update.message.reply_text("Password?")
 
 
 async def _vault_save(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not ADMIN_USER_ID or update.effective_user.id != ADMIN_USER_ID:
+    if _vault_locked(context):
+        await update.message.reply_text("⏳")
         return
-    context.user_data["awaiting_vault_photo"] = True
-    await update.message.reply_text("Bhejo.")
+    context.user_data["awaiting_vault_password"] = "save"
+    await update.message.reply_text("Password?")
 
 
 async def _vault_photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.user_data.get("awaiting_vault_photo"):
         return  # not in save-mode — behave as if this bot has no photo handler at all
     context.user_data["awaiting_vault_photo"] = False
-    if not ADMIN_USER_ID or update.effective_user.id != ADMIN_USER_ID:
-        return
     file_id = update.message.photo[-1].file_id
-    db.save_vault_image(file_id)
-    await update.message.reply_text("✅")
+    db.add_vault_image(file_id)
+    await update.message.reply_text("✅ Saved. Aur bhejni hai to phir /kj47qs use karo.")
+
+
+async def _vault_show_all(update_or_query, context: ContextTypes.DEFAULT_TYPE, send_photo_fn):
+    images = db.get_vault_images()
+    if not images:
+        await send_photo_fn(text_only="Khaali hai.")
+        return
+    for i, img in enumerate(images, start=1):
+        when = img.get("created_at", "")[:10]
+        keyboard = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("🗑 Delete", callback_data=f"vaultdel_{img['id']}")]]
+        )
+        await send_photo_fn(file_id=img["file_id"], caption=f"#{i} • {when}", keyboard=keyboard)
 
 
 async def _vault_check_password(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     """Returns True if this text message was consumed as a vault-password attempt
     (so the caller should stop processing it as normal chat text)."""
-    if not context.user_data.get("awaiting_vault_password"):
+    mode = context.user_data.get("awaiting_vault_password")
+    if not mode:
         return False
-    context.user_data["awaiting_vault_password"] = False
-    if update.message.text.strip() == VAULT_PASSWORD:
-        file_id = db.get_vault_image()
-        if file_id:
-            await update.message.reply_photo(file_id)
-        else:
-            await update.message.reply_text("Khaali hai.")
-    else:
+    context.user_data["awaiting_vault_password"] = None
+
+    if _vault_locked(context):
+        await update.message.reply_text("⏳")
+        return True
+
+    if update.message.text.strip() != VAULT_PASSWORD:
+        _vault_register_failure(context)
         await update.message.reply_text("❌")
+        return True
+
+    _vault_register_success(context)
+
+    if mode == "save":
+        context.user_data["awaiting_vault_photo"] = True
+        await update.message.reply_text("Bhejo.")
+    else:  # mode == "view"
+        async def _send(text_only=None, file_id=None, caption=None, keyboard=None):
+            if text_only:
+                await update.message.reply_text(text_only)
+            else:
+                await update.message.reply_photo(file_id, caption=caption, reply_markup=keyboard)
+
+        await _vault_show_all(update, context, _send)
+
     return True
+
+
+async def _vault_delete_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    image_id = int(query.data.replace("vaultdel_", ""))
+    db.delete_vault_image(image_id)
+    await query.answer("Deleted")
+    try:
+        await query.message.delete()
+    except Exception:
+        pass
 
 
 def main():
@@ -896,6 +957,7 @@ def main():
     app.add_handler(CallbackQueryHandler(mark_session_done, pattern="^sessiondone_"))
     app.add_handler(CallbackQueryHandler(mark_revision_done, pattern="^revdone_"))
     app.add_handler(CallbackQueryHandler(badge_info, pattern="^badgeinfo_"))
+    app.add_handler(CallbackQueryHandler(_vault_delete_callback, pattern="^vaultdel_"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
     app.add_error_handler(global_error_handler)
 
