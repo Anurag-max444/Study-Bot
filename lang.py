@@ -152,10 +152,20 @@ TEXT = {
         "english": "Great! A {duration}-minute session for '{topic}' is scheduled at {time}. ✅\n(This is one-time — add it again with /addtask if you want it tomorrow too)",
         "hinglish": "Badhiya! {time} baje '{topic}' ke liye {duration} minute ka session set ho gaya hai. ✅\n(Yeh ek baar chalega — agle din phir chahiye to dobara /addtask kijiye)",
     },
-    "report_generating": {
-        "hindi": "📊 आपकी weekly report बन रही है, एक पल रुकिए...",
-        "english": "📊 Building your weekly report, one moment...",
-        "hinglish": "📊 Aapki weekly report ban rahi hai, ek pal rukiye...",
+    "generating_progress_line": {
+        "hindi": "{label}\n[{bar}] {pct}%",
+        "english": "{label}\n[{bar}] {pct}%",
+        "hinglish": "{label}\n[{bar}] {pct}%",
+    },
+    "tree_generating_label": {
+        "hindi": "🌳 आपका Study Tree बन रहा है...",
+        "english": "🌳 Growing your Study Tree...",
+        "hinglish": "🌳 Aapka Study Tree ban raha hai...",
+    },
+    "report_generating_label": {
+        "hindi": "📊 आपकी weekly report बन रही है...",
+        "english": "📊 Building your weekly report...",
+        "hinglish": "📊 Aapki weekly report ban rahi hai...",
     },
     "report_ready_caption": {
         "hindi": "📊 <b>यह रही आपकी weekly report, {name}!</b>",

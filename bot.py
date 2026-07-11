@@ -2,6 +2,7 @@ import os
 import html
 import logging
 import threading
+import asyncio
 from datetime import datetime, time as dtime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from dotenv import load_dotenv
@@ -51,6 +52,34 @@ def _progress_bar(value: float, total: float, length: int = 10) -> str:
     pct = 0 if not total else max(0, min(1, value / total))
     filled = round(pct * length)
     return "█" * filled + "░" * (length - filled)
+
+
+async def _show_progress(chat_id: int, context: ContextTypes.DEFAULT_TYPE, lang: str,
+                          label: str, chat_action: str):
+    """Sends a small message with an animated progress bar while a file (tree
+    image / PDF report) is being generated, plus Telegram's own native
+    "uploading..." indicator. Returns the message so the caller can delete it
+    once the real file is ready to send. Generation itself is fast, so the
+    steps below are intentionally paced — purely a "this is doing something"
+    cue rather than a literal progress readout."""
+    try:
+        await context.bot.send_chat_action(chat_id, action=chat_action)
+    except Exception:
+        pass
+
+    msg = await context.bot.send_message(
+        chat_id, t("generating_progress_line", lang, label=label, bar=_progress_bar(0, 100), pct=0)
+    )
+    for pct in (40, 75, 100):
+        await asyncio.sleep(0.35)
+        try:
+            await context.bot.send_chat_action(chat_id, action=chat_action)
+            await msg.edit_text(
+                t("generating_progress_line", lang, label=label, bar=_progress_bar(pct, 100), pct=pct)
+            )
+        except Exception:
+            pass
+    return msg
 
 
 def _parse_hours(text: str):
@@ -316,6 +345,10 @@ async def mytree_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     days_inactive = db.get_days_since_active(user_id)
     wilted = bool(days_inactive is not None and days_inactive >= 2)
 
+    progress_msg = await _show_progress(
+        update.effective_chat.id, context, lang, t("tree_generating_label", lang), "upload_photo"
+    )
+
     out_path = f"/tmp/{user_id}_tree.png"
     generate_tree_image(stage, wilted, out_path)
 
@@ -327,6 +360,11 @@ async def mytree_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     with open(out_path, "rb") as f:
         await update.message.reply_photo(photo=f, caption=caption, parse_mode="HTML")
+
+    try:
+        await progress_msg.delete()
+    except Exception:
+        pass
 
 
 async def extractquestions_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -612,12 +650,18 @@ async def report_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     lang = user["language"]
-    await update.message.reply_text(t("report_generating", lang))
+    chat_id = update.effective_chat.id
+    progress_msg = await _show_progress(chat_id, context, lang, t("report_generating_label", lang), "upload_document")
     try:
-        await _build_and_send_report(context.bot, update.effective_chat.id, user)
+        await _build_and_send_report(context.bot, chat_id, user)
     except Exception:
         logging.exception("Failed to build/send weekly report for user %s", user_id)
         await update.message.reply_text(t("report_failed", lang))
+    finally:
+        try:
+            await progress_msg.delete()
+        except Exception:
+            pass
 
 
 async def send_weekly_reports_job(context: ContextTypes.DEFAULT_TYPE):
