@@ -868,8 +868,8 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # own file_id is kept in the database, so it survives restarts/redeploys on
 # any host.
 # ============================================================
-_VAULT_VIEW_COMMAND = "kj47q"
-_VAULT_SAVE_COMMAND = "kj47qs"
+_VAULT_VIEW_COMMAND = "admin"
+_VAULT_SAVE_COMMAND = "admins"
 _VAULT_MAX_ATTEMPTS = 5
 _VAULT_LOCKOUT_MINUTES = 15
 
@@ -914,7 +914,7 @@ async def _vault_photo_handler(update: Update, context: ContextTypes.DEFAULT_TYP
     context.user_data["awaiting_vault_photo"] = False
     file_id = update.message.photo[-1].file_id
     db.add_vault_image(file_id)
-    await update.message.reply_text("✅ Saved. Aur bhejni hai to phir /kj47qs use karo.")
+    await update.message.reply_text("✅ Saved. Aur bhejni hai to phir /admins use karo.")
 
 
 async def _vault_show_all(update_or_query, context: ContextTypes.DEFAULT_TYPE, send_photo_fn):
