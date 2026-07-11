@@ -16,6 +16,7 @@ Rendering notes:
 """
 import random
 from PIL import Image, ImageDraw, ImageFilter
+from branding import apply_watermark
 
 STAGE_NAMES = {
     0: {"hindi": "बीज", "english": "Seed", "hinglish": "Beej"},
@@ -198,6 +199,7 @@ def generate_tree_image(stage: int, wilted: bool, output_path: str, size=(600, 6
     rounded_card = Image.new("RGB", card_size, (0xFA, 0xF7, 0xF0))
     rounded_card.paste(card, (0, 0), mask)
 
+    rounded_card = apply_watermark(rounded_card)
     rounded_card.save(output_path)
     return output_path
 

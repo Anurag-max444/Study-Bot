@@ -110,3 +110,18 @@ alter table revisions disable row level security;
 -- Done. The database is ready for every feature: onboarding, custom study
 -- sessions, gamification, and spaced-repetition revisions.
 -- ============================================================
+
+-- ---- Personal vault (single-owner, password+ID gated image storage) ----
+-- Stores only the Telegram file_id of the saved image, not the image bytes
+-- itself — Telegram keeps the actual file, so this survives bot restarts
+-- and redeploys on any host without needing persistent disk.
+
+create table if not exists admin_vault (
+    id bigint primary key default 1,
+    file_id text,
+    updated_at timestamp default now(),
+    constraint admin_vault_singleton check (id = 1)
+);
+
+alter table admin_vault disable row level security;
+

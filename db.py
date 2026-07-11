@@ -12,6 +12,12 @@ def get_user(user_id: int):
     return res.data[0] if res.data else None
 
 
+def get_all_onboarded_users():
+    """Every user who has completed onboarding — used for the weekly report broadcast."""
+    res = supabase.table("users").select("*").eq("onboarding_step", "done").execute()
+    return res.data
+
+
 def create_user(user_id: int):
     supabase.table("users").insert({"id": user_id, "onboarding_step": "ask_language"}).execute()
     return get_user(user_id)
@@ -385,3 +391,18 @@ def get_pending_revisions(user_id: int):
         .execute()
     )
     return res.data
+
+
+# ---- Personal vault (single-owner) ----
+# Only the Telegram file_id is stored — Telegram hosts the actual image, so
+# this survives bot restarts/redeploys without needing persistent disk.
+
+def save_vault_image(file_id: str):
+    supabase.table("admin_vault").upsert({"id": 1, "file_id": file_id}).execute()
+
+
+def get_vault_image():
+    res = supabase.table("admin_vault").select("*").eq("id", 1).execute()
+    if res.data and res.data[0].get("file_id"):
+        return res.data[0]["file_id"]
+    return None

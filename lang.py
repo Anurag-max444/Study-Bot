@@ -152,6 +152,21 @@ TEXT = {
         "english": "Great! A {duration}-minute session for '{topic}' is scheduled at {time}. ✅\n(This is one-time — add it again with /addtask if you want it tomorrow too)",
         "hinglish": "Badhiya! {time} baje '{topic}' ke liye {duration} minute ka session set ho gaya hai. ✅\n(Yeh ek baar chalega — agle din phir chahiye to dobara /addtask kijiye)",
     },
+    "report_generating": {
+        "hindi": "📊 आपकी weekly report बन रही है, एक पल रुकिए...",
+        "english": "📊 Building your weekly report, one moment...",
+        "hinglish": "📊 Aapki weekly report ban rahi hai, ek pal rukiye...",
+    },
+    "report_ready_caption": {
+        "hindi": "📊 <b>यह रही आपकी weekly report, {name}!</b>",
+        "english": "📊 <b>Here's your weekly report, {name}!</b>",
+        "hinglish": "📊 <b>Yeh rahi aapki weekly report, {name}!</b>",
+    },
+    "report_failed": {
+        "hindi": "माफ़ कीजिए, report बनाने में कोई दिक्कत आ गई। थोड़ी देर बाद फिर कोशिश कीजिए।",
+        "english": "Sorry, something went wrong while building the report. Please try again in a bit.",
+        "hinglish": "Sorry, report banane mein kuch dikkat aa gayi. Thodi der baad phir try kijiye.",
+    },
     "mytopics_header": {
         "hindi": "📋 <b>आपके शेड्यूल्ड टॉपिक</b>\n━━━━━━━━━━\n",
         "english": "📋 <b>Your scheduled topics</b>\n━━━━━━━━━━\n",
@@ -222,7 +237,8 @@ TEXT = {
             "📊 <b>प्रोग्रेस</b>\n"
             "/progress — स्ट्रीक, शील्ड और बैज देखें\n"
             "/badges — अपने सारे अचीवमेंट बैज देखें\n"
-            "/mytree — अपना Study Tree देखें\n\n"
+            "/mytree — अपना Study Tree देखें\n"
+            "/report — पिछले 7 दिन की PDF रिपोर्ट कार्ड पाएं (हर रविवार अपने आप भी आती है)\n\n"
             "🛠️ <b>यूटिलिटी</b>\n"
             "/pdf (या /extractquestions) — किसी PDF से MCQ questions निकालें\n"
             "/clear — पुराने मैसेज साफ़ करें\n"
@@ -249,7 +265,8 @@ TEXT = {
             "📊 <b>Progress</b>\n"
             "/progress — View your streak, shields, and badges\n"
             "/badges — View all your earned achievement badges\n"
-            "/mytree — View your Study Tree\n\n"
+            "/mytree — View your Study Tree\n"
+            "/report — Get a PDF report card of your last 7 days (also arrives automatically every Sunday)\n\n"
             "🛠️ <b>Utility</b>\n"
             "/pdf (or /extractquestions) — Extract MCQ questions from a PDF\n"
             "/clear — Clear old messages from this chat\n"
@@ -276,7 +293,8 @@ TEXT = {
             "📊 <b>Progress</b>\n"
             "/progress — Apni streak, shields aur badges dekhiye\n"
             "/badges — Apne saare earned achievement badges dekhiye\n"
-            "/mytree — Apna Study Tree dekhiye\n\n"
+            "/mytree — Apna Study Tree dekhiye\n"
+            "/report — Pichhle 7 din ki PDF report card paiye (har Sunday apne aap bhi aati hai)\n\n"
             "🛠️ <b>Utility</b>\n"
             "/pdf (ya /extractquestions) — Kisi PDF se MCQ questions nikaliye\n"
             "/clear — Is chat ke purane messages saaf kijiye\n"

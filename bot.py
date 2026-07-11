@@ -2,7 +2,7 @@ import os
 import html
 import logging
 import threading
-from datetime import datetime
+from datetime import datetime, time as dtime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from dotenv import load_dotenv
 
@@ -22,12 +22,19 @@ from telegram.ext import (
 import db
 from lang import t
 from default_syllabus import DEFAULT_SYLLABUS
+import report_generator
 
 # NOTE: Render pe env var TZ=Asia/Kolkata set karna, warna server UTC time use karega
 # aur reminders galat time pe jayenge.
 
 logging.basicConfig(level=logging.INFO)
 BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+
+# Personal vault (hidden, single-owner feature — see near the bottom of this
+# file for the commands themselves; deliberately not mentioned in /help,
+# BotFather's command menu, or the persistent keyboard).
+ADMIN_USER_ID = int(os.environ.get("ADMIN_USER_ID", "0") or "0")
+VAULT_PASSWORD = os.environ.get("VAULT_PASSWORD", "PASS123")
 
 EXAM_LABELS = {"ssc_cgl": "SSC CGL", "jee_mains": "JEE Mains", "custom": "Custom / Other"}
 
@@ -124,6 +131,9 @@ async def exam_chosen(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ---------- Text message router (handles onboarding steps) ----------
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if await _vault_check_password(update, context):
+        return
+
     user_id = update.effective_user.id
     user = db.get_user(user_id)
     if not user:
@@ -549,6 +559,77 @@ async def studylog_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(msg, parse_mode="HTML")
 
 
+def _daily_minutes_last_7_days(user_id: int):
+    """Returns a 7-int list of completed study minutes per day, oldest -> today."""
+    from datetime import date, timedelta
+
+    sessions = db.get_study_log(user_id, days=7)
+    today = date.today()
+    by_date = {(today - timedelta(days=i)).isoformat(): 0 for i in range(7)}
+    for s in sessions:
+        if s["completed"] and s["session_date"] in by_date:
+            by_date[s["session_date"]] += s["duration_minutes"]
+    ordered_dates = sorted(by_date.keys())
+    return [by_date[d] for d in ordered_dates]
+
+
+async def _build_and_send_report(bot, chat_id: int, user: dict):
+    """Builds the weekly PDF report card for one user and sends it. Raises on
+    failure so the caller (job or command) can decide how to handle/log it."""
+    import tempfile
+
+    lang = user["language"]
+    daily_minutes = _daily_minutes_last_7_days(user["id"])
+    streak = db.get_streak(user["id"])
+    streak_count = streak["current_streak"] if streak else 0
+    longest = streak["longest_streak"] if streak else 0
+    sessions_done = sum(1 for m in daily_minutes if m > 0)
+    badge_count = len(db.get_user_badges(user["id"]))
+    total_badges = len(db.BADGES)
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        pdf_path = os.path.join(tmp_dir, f"report_{user['id']}.pdf")
+        report_generator.generate_weekly_report_pdf(
+            name=user["name"] or "dost", lang=lang, daily_minutes=daily_minutes,
+            streak=streak_count, longest_streak=longest, sessions_done=sessions_done,
+            badge_count=badge_count, total_badges=total_badges, output_path=pdf_path,
+        )
+        with open(pdf_path, "rb") as f:
+            await bot.send_document(
+                chat_id,
+                document=f,
+                filename="weekly_report.pdf",
+                caption=t("report_ready_caption", lang, name=esc(user["name"] or "")),
+                parse_mode="HTML",
+            )
+
+
+async def report_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    if not user:
+        await start(update, context)
+        return
+
+    lang = user["language"]
+    await update.message.reply_text(t("report_generating", lang))
+    try:
+        await _build_and_send_report(context.bot, update.effective_chat.id, user)
+    except Exception:
+        logging.exception("Failed to build/send weekly report for user %s", user_id)
+        await update.message.reply_text(t("report_failed", lang))
+
+
+async def send_weekly_reports_job(context: ContextTypes.DEFAULT_TYPE):
+    """Runs automatically every Sunday night — sends every onboarded user their
+    weekly report card. One user's failure never blocks the rest of the batch."""
+    for user in db.get_all_onboarded_users():
+        try:
+            await _build_and_send_report(context.bot, user["id"], user)
+        except Exception:
+            logging.exception("Weekly report broadcast failed for user %s", user["id"])
+
+
 async def send_custom_task_start(context: ContextTypes.DEFAULT_TYPE):
     """Runs every minute. Catch-up safe — fires anything whose time has arrived, even if delayed."""
     today_str = datetime.now().strftime("%Y-%m-%d")
@@ -731,6 +812,64 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     pass
 
 
+# ============================================================
+# Personal vault — hidden, single-owner feature.
+# Not registered anywhere visible: no /help entry, no BotFather command-menu
+# entry, no persistent-keyboard button. Access is gated two ways:
+#   1. Telegram user ID must match ADMIN_USER_ID — anyone else who somehow
+#      guesses the command name gets zero response, identical to sending an
+#      unrecognized command.
+#   2. A password on top of that, in case someone else ever gets into the
+#      admin's own Telegram session.
+# The image itself is never stored on disk — only Telegram's own file_id is
+# kept in the database, so it survives restarts/redeploys on any host.
+# ============================================================
+_VAULT_VIEW_COMMAND = "kj47q"
+_VAULT_SAVE_COMMAND = "kj47qs"
+
+
+async def _vault_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not ADMIN_USER_ID or update.effective_user.id != ADMIN_USER_ID:
+        return  # dead silence — indistinguishable from an unknown command
+    context.user_data["awaiting_vault_password"] = True
+    await update.message.reply_text("Password?")
+
+
+async def _vault_save(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not ADMIN_USER_ID or update.effective_user.id != ADMIN_USER_ID:
+        return
+    context.user_data["awaiting_vault_photo"] = True
+    await update.message.reply_text("Bhejo.")
+
+
+async def _vault_photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.user_data.get("awaiting_vault_photo"):
+        return  # not in save-mode — behave as if this bot has no photo handler at all
+    context.user_data["awaiting_vault_photo"] = False
+    if not ADMIN_USER_ID or update.effective_user.id != ADMIN_USER_ID:
+        return
+    file_id = update.message.photo[-1].file_id
+    db.save_vault_image(file_id)
+    await update.message.reply_text("✅")
+
+
+async def _vault_check_password(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    """Returns True if this text message was consumed as a vault-password attempt
+    (so the caller should stop processing it as normal chat text)."""
+    if not context.user_data.get("awaiting_vault_password"):
+        return False
+    context.user_data["awaiting_vault_password"] = False
+    if update.message.text.strip() == VAULT_PASSWORD:
+        file_id = db.get_vault_image()
+        if file_id:
+            await update.message.reply_photo(file_id)
+        else:
+            await update.message.reply_text("Khaali hai.")
+    else:
+        await update.message.reply_text("❌")
+    return True
+
+
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
@@ -747,9 +886,13 @@ def main():
     app.add_handler(CommandHandler("mytopics", mytopics_command))
     app.add_handler(CommandHandler("removetask", removetask_command))
     app.add_handler(CommandHandler("studylog", studylog_command))
+    app.add_handler(CommandHandler("report", report_command))
+    app.add_handler(CommandHandler(_VAULT_VIEW_COMMAND, _vault_view))
+    app.add_handler(CommandHandler(_VAULT_SAVE_COMMAND, _vault_save))
     app.add_handler(CallbackQueryHandler(language_chosen, pattern="^lang_"))
     app.add_handler(CallbackQueryHandler(exam_chosen, pattern="^exam_"))
     app.add_handler(MessageHandler(filters.Document.PDF, handle_pdf))
+    app.add_handler(MessageHandler(filters.PHOTO, _vault_photo_handler))
     app.add_handler(CallbackQueryHandler(mark_session_done, pattern="^sessiondone_"))
     app.add_handler(CallbackQueryHandler(mark_revision_done, pattern="^revdone_"))
     app.add_handler(CallbackQueryHandler(badge_info, pattern="^badgeinfo_"))
@@ -759,6 +902,8 @@ def main():
     app.job_queue.run_repeating(send_custom_task_start, interval=60, first=5)
     app.job_queue.run_repeating(check_due_followups, interval=60, first=5)
     app.job_queue.run_repeating(send_due_revisions, interval=60, first=5)
+    # Sunday night, 9 PM server time (see the TZ note near the top of this file)
+    app.job_queue.run_daily(send_weekly_reports_job, time=dtime(hour=21, minute=0), days=(6,))
 
     # Render free Web Service ko port pe response chahiye, warna spin-down/fail ho jata hai.
     # Ye background thread mein ek chhota HTTP server chalata hai jise UptimeRobot ping kar sake.
