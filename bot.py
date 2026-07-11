@@ -824,8 +824,8 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # The image itself is never stored on disk — only Telegram's own file_id is
 # kept in the database, so it survives restarts/redeploys on any host.
 # ============================================================
-_VAULT_VIEW_COMMAND = "kj47q"
-_VAULT_SAVE_COMMAND = "kj47qs"
+_VAULT_VIEW_COMMAND = "admin"
+_VAULT_SAVE_COMMAND = "admins"
 
 
 async def _vault_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
