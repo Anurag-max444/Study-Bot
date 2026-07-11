@@ -111,7 +111,34 @@ alter table revisions disable row level security;
 -- sessions, gamification, and spaced-repetition revisions.
 -- ============================================================
 
--- ---- Personal vault (password-gated image storage, multiple images) ----
+-- ---- Mock test logging ----
+-- Every field the user asked for, stored as entered — no derived/guessed
+-- scoring, since negative-marking schemes vary too much across exams to
+-- safely auto-calculate a score from raw attempted/wrong/marks numbers.
+
+create table if not exists mock_tests (
+    id bigserial primary key,
+    user_id bigint references users(id) on delete cascade,
+    test_date date not null,
+    platform text,
+    scope text,
+    duration_minutes int,
+    total_questions int,
+    total_marks numeric,
+    negative_marking text,
+    attempted int,
+    wrong int,
+    skipped int,
+    percentile numeric,
+    rank int,
+    weak_topics text,
+    average_topics text,
+    strong_topics text,
+    created_at timestamp default now()
+);
+
+alter table mock_tests disable row level security;
+
 -- Stores only each image's Telegram file_id, not the image bytes itself —
 -- Telegram keeps the actual file, so this survives bot restarts and
 -- redeploys on any host without needing persistent disk.

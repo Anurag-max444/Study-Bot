@@ -253,6 +253,9 @@ TEXT = {
             "/pdf (या /extractquestions) — किसी PDF से MCQ questions निकालें\n"
             "/clear — पुराने मैसेज साफ़ करें\n"
             "/help — यह गाइड फिर से देखें\n\n"
+            "🧾 <b>Mock Tests</b>\n"
+            "/addmocktest — कोई mock test log करें (platform, score, percentile, rank, weak/strong topics वगैरह)\n"
+            "/mocktests — अपने सारे logged mock tests देखें\n\n"
             "━━━━━━━━━━\n"
             "📌 <b>बॉट कैसे काम करता है:</b>\n"
             "• /addtask से अपना टॉपिक, समय और अवधि सेट कीजिए — बॉट सही समय पर याद दिलाएगा\n"
@@ -281,6 +284,9 @@ TEXT = {
             "/pdf (or /extractquestions) — Extract MCQ questions from a PDF\n"
             "/clear — Clear old messages from this chat\n"
             "/help — Show this guide again\n\n"
+            "🧾 <b>Mock Tests</b>\n"
+            "/addmocktest — Log a mock test (platform, score, percentile, rank, weak/strong topics, etc.)\n"
+            "/mocktests — View all your logged mock tests\n\n"
             "━━━━━━━━━━\n"
             "📌 <b>How the bot works:</b>\n"
             "• Use /addtask to set your topic, start time, and duration — the bot reminds you right on time\n"
@@ -309,6 +315,9 @@ TEXT = {
             "/pdf (ya /extractquestions) — Kisi PDF se MCQ questions nikaliye\n"
             "/clear — Is chat ke purane messages saaf kijiye\n"
             "/help — Yeh guide dobara dekhiye\n\n"
+            "🧾 <b>Mock Tests</b>\n"
+            "/addmocktest — Koi mock test log kijiye (platform, score, percentile, rank, weak/strong topics wagera)\n"
+            "/mocktests — Apne saare logged mock tests dekhiye\n\n"
             "━━━━━━━━━━\n"
             "📌 <b>Bot kaise kaam karta hai:</b>\n"
             "• /addtask se apna topic, start time aur duration set kijiye — bot sahi time par yaad dilayega\n"
@@ -438,6 +447,192 @@ TEXT = {
         "hindi": "अभी कोई रिवीजन पेंडिंग नहीं है। जैसे ही कोई टॉपिक पूरा करोगे, यहां रिवीजन शेड्यूल हो जाएंगे।",
         "english": "No revisions pending right now. As you complete topics, revisions will get scheduled here automatically.",
         "hinglish": "Abhi koi revision pending nahi hai. Jaise hi koi topic complete karoge, yahan revisions automatically schedule ho jayenge.",
+    },
+
+    # ---- Mock test logging ----
+    "mt_ask_platform": {
+        "hindi": "📝 Step {n}/{total} — यह टेस्ट किस प्लेटफॉर्म पर दिया था? (जैसे Testbook, PW, Unacademy)\n(ya 'skip' bhejo)",
+        "english": "📝 Step {n}/{total} — Which platform was this test on? (e.g. Testbook, PW, Unacademy)\n(or send 'skip')",
+        "hinglish": "📝 Step {n}/{total} — Yeh test kis platform pe diya tha? (jaise Testbook, PW, Unacademy)\n(ya 'skip' bhejo)",
+    },
+    "mt_ask_scope_type": {
+        "hindi": "🎯 Step {n}/{total} — यह फुल सिलेबस टेस्ट था या किसी सब्जेक्ट/टॉपिक का?",
+        "english": "🎯 Step {n}/{total} — Was this a full syllabus test, or subject/topic-specific?",
+        "hinglish": "🎯 Step {n}/{total} — Yeh full syllabus test tha ya kisi subject/topic ka?",
+    },
+    "mt_ask_scope_breadth": {
+        "hindi": "📚 Step {n}/{total} — पूरा सब्जेक्ट था या सिर्फ 1-2 चैप्टर/टॉपिक?",
+        "english": "📚 Step {n}/{total} — Was it the whole subject, or just 1-2 chapters/topics?",
+        "hinglish": "📚 Step {n}/{total} — Pura subject tha ya sirf 1-2 chapters/topics?",
+    },
+    "mt_ask_scope_detail_subject": {
+        "hindi": "📗 कौनसा सब्जेक्ट था?\n(ya 'skip' bhejo)",
+        "english": "📗 Which subject was it?\n(or send 'skip')",
+        "hinglish": "📗 Konsa subject tha?\n(ya 'skip' bhejo)",
+    },
+    "mt_ask_scope_detail_chapters": {
+        "hindi": "📄 कौनसा सब्जेक्ट और कौनसे चैप्टर/टॉपिक थे?\n(ya 'skip' bhejo)",
+        "english": "📄 Which subject and which chapters/topics?\n(or send 'skip')",
+        "hinglish": "📄 Konsa subject aur konse chapters/topics the?\n(ya 'skip' bhejo)",
+    },
+    "mt_ask_duration": {
+        "hindi": "⏱ Step {n}/{total} — टेस्ट कितने मिनट का था? (सिर्फ नंबर भेजिए)\n(ya 'skip' bhejo)",
+        "english": "⏱ Step {n}/{total} — How many minutes was the test? (just the number)\n(or send 'skip')",
+        "hinglish": "⏱ Step {n}/{total} — Test kitne minute ka tha? (sirf number bhejiye)\n(ya 'skip' bhejo)",
+    },
+    "mt_ask_total_questions": {
+        "hindi": "🔢 Step {n}/{total} — कुल कितने सवाल थे?\n(ya 'skip' bhejo)",
+        "english": "🔢 Step {n}/{total} — How many total questions were there?\n(or send 'skip')",
+        "hinglish": "🔢 Step {n}/{total} — Kitne total questions the?\n(ya 'skip' bhejo)",
+    },
+    "mt_ask_total_marks": {
+        "hindi": "🏆 Step {n}/{total} — टेस्ट कितने मार्क्स का था?\n(ya 'skip' bhejo)",
+        "english": "🏆 Step {n}/{total} — How many total marks was the test out of?\n(or send 'skip')",
+        "hinglish": "🏆 Step {n}/{total} — Test kitne marks ka tha?\n(ya 'skip' bhejo)",
+    },
+    "mt_ask_negative_marking": {
+        "hindi": "➖ Step {n}/{total} — नेगेटिव मार्किंग क्या थी? (जैसे -1/4, -0.25, ya 'none')\n(ya 'skip' bhejo)",
+        "english": "➖ Step {n}/{total} — What was the negative marking? (e.g. -1/4, -0.25, or 'none')\n(or send 'skip')",
+        "hinglish": "➖ Step {n}/{total} — Negative marking kya thi? (jaise -1/4, -0.25, ya 'none')\n(ya 'skip' bhejo)",
+    },
+    "mt_ask_attempted": {
+        "hindi": "✍️ Step {n}/{total} — कितने सवाल अटेम्प्ट किए?\n(ya 'skip' bhejo)",
+        "english": "✍️ Step {n}/{total} — How many questions did you attempt?\n(or send 'skip')",
+        "hinglish": "✍️ Step {n}/{total} — Kitne questions attempt kiye?\n(ya 'skip' bhejo)",
+    },
+    "mt_invalid_attempted": {
+        "hindi": "यह total questions ({total}) से ज़्यादा नहीं हो सकता। सही नंबर भेजिए, ya 'skip' bhejo.",
+        "english": "This can't be more than the total questions ({total}). Send a valid number, or 'skip'.",
+        "hinglish": "Yeh total questions ({total}) se zyada nahi ho sakta. Sahi number bhejiye, ya 'skip' bhejo.",
+    },
+    "mt_ask_wrong": {
+        "hindi": "❌ Step {n}/{total} — कितने सवाल गलत हुए?\n(ya 'skip' bhejo)",
+        "english": "❌ Step {n}/{total} — How many were wrong?\n(or send 'skip')",
+        "hinglish": "❌ Step {n}/{total} — Kitne questions wrong hue?\n(ya 'skip' bhejo)",
+    },
+    "mt_invalid_wrong": {
+        "hindi": "यह attempted questions ({attempted}) से ज़्यादा नहीं हो सकता। सही नंबर भेजिए, ya 'skip' bhejo.",
+        "english": "This can't be more than attempted questions ({attempted}). Send a valid number, or 'skip'.",
+        "hinglish": "Yeh attempted questions ({attempted}) se zyada nahi ho sakta. Sahi number bhejiye, ya 'skip' bhejo.",
+    },
+    "mt_ask_skipped": {
+        "hindi": "⏭ Step {n}/{total} — कितने सवाल छोड़े (skip किए)?\n(ya 'skip' bhejo)",
+        "english": "⏭ Step {n}/{total} — How many questions did you skip?\n(or send 'skip')",
+        "hinglish": "⏭ Step {n}/{total} — Kitne questions skip kiye?\n(ya 'skip' bhejo)",
+    },
+    "mt_ask_percentile": {
+        "hindi": "📈 Step {n}/{total} — कितनी percentile आई?\n(ya 'skip' bhejo)",
+        "english": "📈 Step {n}/{total} — What percentile did you get?\n(or send 'skip')",
+        "hinglish": "📈 Step {n}/{total} — Kitni percentile aayi?\n(ya 'skip' bhejo)",
+    },
+    "mt_invalid_percentile": {
+        "hindi": "Percentile 0 se 100 ke beech honi chahiye. Sahi number bhejiye, ya 'skip' bhejo.",
+        "english": "Percentile should be between 0 and 100. Send a valid number, or 'skip'.",
+        "hinglish": "Percentile 0 se 100 ke beech honi chahiye. Sahi number bhejiye, ya 'skip' bhejo.",
+    },
+    "mt_ask_rank": {
+        "hindi": "🏅 Step {n}/{total} — कौनसी रैंक आई?\n(ya 'skip' bhejo)",
+        "english": "🏅 Step {n}/{total} — What rank did you get?\n(or send 'skip')",
+        "hinglish": "🏅 Step {n}/{total} — Kaunsi rank aayi?\n(ya 'skip' bhejo)",
+    },
+    "mt_ask_weak_topics": {
+        "hindi": "⚠️ Step {n}/{total} — कौनसे टॉपिक weak लगे?\n(ya 'skip' bhejo)",
+        "english": "⚠️ Step {n}/{total} — Which topics felt weak?\n(or send 'skip')",
+        "hinglish": "⚠️ Step {n}/{total} — Konse topics weak lage?\n(ya 'skip' bhejo)",
+    },
+    "mt_ask_average_topics": {
+        "hindi": "⚖️ Step {n}/{total} — कौनसे टॉपिक average लगे?\n(ya 'skip' bhejo)",
+        "english": "⚖️ Step {n}/{total} — Which topics felt average?\n(or send 'skip')",
+        "hinglish": "⚖️ Step {n}/{total} — Konse topics average lage?\n(ya 'skip' bhejo)",
+    },
+    "mt_ask_strong_topics": {
+        "hindi": "💪 Step {n}/{total} — कौनसे टॉपिक strong लगे?\n(ya 'skip' bhejo)",
+        "english": "💪 Step {n}/{total} — Which topics felt strong?\n(or send 'skip')",
+        "hinglish": "💪 Step {n}/{total} — Konse topics strong lage?\n(ya 'skip' bhejo)",
+    },
+    "mt_ask_test_date": {
+        "hindi": "📅 Step {n}/{total} — यह टेस्ट किस तारीख को दिया था? (DD-MM-YYYY, ya 'aaj')\n(ya 'skip' bhejo aaj ke liye)",
+        "english": "📅 Step {n}/{total} — What date did you take this test? (DD-MM-YYYY, or 'today')\n(or send 'skip' for today)",
+        "hinglish": "📅 Step {n}/{total} — Yeh test kis date ko diya tha? (DD-MM-YYYY, ya 'aaj')\n(ya 'skip' bhejo aaj ke liye)",
+    },
+    "mt_invalid_test_date": {
+        "hindi": "तारीख समझ नहीं आई। DD-MM-YYYY फॉर्मेट में भेजिए (जैसे 11-07-2026), ya 'aaj'.",
+        "english": "Couldn't understand that date. Send it as DD-MM-YYYY (e.g. 11-07-2026), or 'today'.",
+        "hinglish": "Date samajh nahi aayi. DD-MM-YYYY format mein bhejiye (jaise 11-07-2026), ya 'aaj'.",
+    },
+    "mt_invalid_text": {
+        "hindi": "कृपया 1-200 अक्षरों का सही जवाब भेजिए, ya 'skip' bhejo.",
+        "english": "Please send a valid answer (1-200 characters), or send 'skip'.",
+        "hinglish": "Kripya 1-200 characters ka sahi jawab bhejiye, ya 'skip' bhejo.",
+    },
+    "mt_invalid_number": {
+        "hindi": "कृपया एक सही नंबर भेजिए (0 ya usse zyada), ya 'skip' bhejo.",
+        "english": "Please send a valid number (0 or more), or send 'skip'.",
+        "hinglish": "Kripya ek sahi number bhejiye (0 ya usse zyada), ya 'skip' bhejo.",
+    },
+    "mt_saved": {
+        "hindi": "✅ <b>Mock test log ho gaya!</b>",
+        "english": "✅ <b>Mock test logged!</b>",
+        "hinglish": "✅ <b>Mock test log ho gaya!</b>",
+    },
+    "mt_detail_block": {
+        "hindi": (
+            "📝 <b>Mock Test Details</b>\n━━━━━━━━━━\n"
+            "📅 Date: {date}\n"
+            "🏢 Platform: {platform}\n"
+            "🎯 Scope: {scope}\n"
+            "⏱ Duration: {duration} min\n"
+            "🔢 Questions: {total_q} • Marks: {total_marks}\n"
+            "➖ Negative marking: {negative}\n"
+            "✍️ Attempted: {attempted} • ✅ Correct: {correct} • ❌ Wrong: {wrong} • ⏭ Skipped: {skipped}\n"
+            "📈 Percentile: {percentile} • 🏅 Rank: {rank}\n\n"
+            "💪 Strong: {strong}\n"
+            "⚖️ Average: {average}\n"
+            "⚠️ Weak: {weak}"
+        ),
+        "english": (
+            "📝 <b>Mock Test Details</b>\n━━━━━━━━━━\n"
+            "📅 Date: {date}\n"
+            "🏢 Platform: {platform}\n"
+            "🎯 Scope: {scope}\n"
+            "⏱ Duration: {duration} min\n"
+            "🔢 Questions: {total_q} • Marks: {total_marks}\n"
+            "➖ Negative marking: {negative}\n"
+            "✍️ Attempted: {attempted} • ✅ Correct: {correct} • ❌ Wrong: {wrong} • ⏭ Skipped: {skipped}\n"
+            "📈 Percentile: {percentile} • 🏅 Rank: {rank}\n\n"
+            "💪 Strong: {strong}\n"
+            "⚖️ Average: {average}\n"
+            "⚠️ Weak: {weak}"
+        ),
+        "hinglish": (
+            "📝 <b>Mock Test Details</b>\n━━━━━━━━━━\n"
+            "📅 Date: {date}\n"
+            "🏢 Platform: {platform}\n"
+            "🎯 Scope: {scope}\n"
+            "⏱ Duration: {duration} min\n"
+            "🔢 Questions: {total_q} • Marks: {total_marks}\n"
+            "➖ Negative marking: {negative}\n"
+            "✍️ Attempted: {attempted} • ✅ Correct: {correct} • ❌ Wrong: {wrong} • ⏭ Skipped: {skipped}\n"
+            "📈 Percentile: {percentile} • 🏅 Rank: {rank}\n\n"
+            "💪 Strong: {strong}\n"
+            "⚖️ Average: {average}\n"
+            "⚠️ Weak: {weak}"
+        ),
+    },
+    "mt_list_header": {
+        "hindi": "📝 <b>Aapke Mock Tests</b> ({count})\n",
+        "english": "📝 <b>Your Mock Tests</b> ({count})\n",
+        "hinglish": "📝 <b>Aapke Mock Tests</b> ({count})\n",
+    },
+    "mt_list_empty": {
+        "hindi": "अभी तक कोई mock test log नहीं हुआ। /addmocktest se shuru kijiye!",
+        "english": "No mock tests logged yet. Start with /addmocktest!",
+        "hinglish": "Abhi tak koi mock test log nahi hua. /addmocktest se shuru kijiye!",
+    },
+    "mt_tap_hint": {
+        "hindi": "🔍 पूरी डिटेल्स देखने के लिए नीचे नंबर पर टैप कीजिए:",
+        "english": "🔍 Tap a number below to see full details:",
+        "hinglish": "🔍 Poori details dekhne ke liye neeche number pe tap kijiye:",
     },
 }
 

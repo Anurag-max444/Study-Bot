@@ -393,6 +393,38 @@ def get_pending_revisions(user_id: int):
     return res.data
 
 
+# ---- Mock test logging ----
+
+def add_mock_test(user_id: int, **fields):
+    fields["user_id"] = user_id
+    fields["test_date"] = fields["test_date"].isoformat()
+    res = supabase.table("mock_tests").insert(fields).execute()
+    return res.data[0] if res.data else None
+
+
+def get_mock_tests(user_id: int):
+    res = (
+        supabase.table("mock_tests")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("test_date", desc=True)
+        .order("created_at", desc=True)
+        .execute()
+    )
+    return res.data
+
+
+def get_mock_test(test_id: int, user_id: int):
+    res = (
+        supabase.table("mock_tests")
+        .select("*")
+        .eq("id", test_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+    return res.data[0] if res.data else None
+
+
 # ---- Personal vault (multiple images) ----
 # Only each image's Telegram file_id is stored — Telegram hosts the actual
 # file, so this survives bot restarts/redeploys without needing persistent disk.
