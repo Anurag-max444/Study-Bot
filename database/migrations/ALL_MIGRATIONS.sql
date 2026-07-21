@@ -111,6 +111,19 @@ alter table revisions disable row level security;
 -- sessions, gamification, and spaced-repetition revisions.
 -- ============================================================
 
+-- ---- Bot state (small key-value store) ----
+-- Currently used to remember when the weekly report broadcast last ran
+-- successfully, so a missed Sunday (e.g. the host was down) can be caught
+-- up automatically on the next startup instead of silently skipping a week.
+
+create table if not exists bot_state (
+    key text primary key,
+    value text,
+    updated_at timestamp default now()
+);
+
+alter table bot_state disable row level security;
+
 -- ---- Mock test logging ----
 -- Every field the user asked for, stored as entered — no derived/guessed
 -- scoring, since negative-marking schemes vary too much across exams to

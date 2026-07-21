@@ -15,9 +15,10 @@ import os
 from datetime import date, timedelta
 from PIL import Image, ImageDraw, ImageFont
 
-from branding import apply_watermark
+import config
+from ui.branding import apply_watermark
 
-_FONT_DIR = os.path.join(os.path.dirname(__file__), "fonts")
+_FONT_DIR = config.FONTS_DIR
 
 WEEKDAY_SHORT = {
     "hindi": ["सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि", "रवि"],

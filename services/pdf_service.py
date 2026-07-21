@@ -11,11 +11,13 @@ bundled Noto Sans / Noto Sans Devanagari fonts ki madad se.
 import os
 import re
 
+import config
+
 QUESTION_START = re.compile(r"^(?:Q\.?\s?\d+[\.\)]|Question\s+\d+[:\.]|\d+[\.\)])\s*(.*)")
 OPTION_LINE = re.compile(r"^\(?([a-dA-D])[\.\)]\s*(.*)")
 ANSWER_LINE = re.compile(r"^(?:Ans(?:wer)?)\s*[:\-]?\s*\(?([a-dA-D])\)?", re.IGNORECASE)
 
-_FONTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
+_FONTS_DIR = config.FONTS_DIR
 
 # Known problem characters (present in real PDFs) that even our Unicode fonts miss.
 # Mapped to safe equivalents; anything else unsupported gets replaced with '?' per-font

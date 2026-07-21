@@ -252,7 +252,8 @@ TEXT = {
             "🛠️ <b>यूटिलिटी</b>\n"
             "/pdf (या /extractquestions) — किसी PDF से MCQ questions निकालें\n"
             "/clear — पुराने मैसेज साफ़ करें\n"
-            "/help — यह गाइड फिर से देखें\n\n"
+            "/help — यह गाइड फिर से देखें\n"
+            "/cancel — कोई भी चालू step-by-step प्रोसेस (addtask, addmocktest वगैरह) रोकें\n\n"
             "🧾 <b>Mock Tests</b>\n"
             "/addmocktest — कोई mock test log करें (platform, score, percentile, rank, weak/strong topics वगैरह)\n"
             "/mocktests — अपने सारे logged mock tests देखें\n\n"
@@ -283,7 +284,8 @@ TEXT = {
             "🛠️ <b>Utility</b>\n"
             "/pdf (or /extractquestions) — Extract MCQ questions from a PDF\n"
             "/clear — Clear old messages from this chat\n"
-            "/help — Show this guide again\n\n"
+            "/help — Show this guide again\n"
+            "/cancel — Stop any in-progress step-by-step flow (addtask, addmocktest, etc.)\n\n"
             "🧾 <b>Mock Tests</b>\n"
             "/addmocktest — Log a mock test (platform, score, percentile, rank, weak/strong topics, etc.)\n"
             "/mocktests — View all your logged mock tests\n\n"
@@ -314,7 +316,8 @@ TEXT = {
             "🛠️ <b>Utility</b>\n"
             "/pdf (ya /extractquestions) — Kisi PDF se MCQ questions nikaliye\n"
             "/clear — Is chat ke purane messages saaf kijiye\n"
-            "/help — Yeh guide dobara dekhiye\n\n"
+            "/help — Yeh guide dobara dekhiye\n"
+            "/cancel — Koi bhi chalu step-by-step process (addtask, addmocktest wagera) roke\n\n"
             "🧾 <b>Mock Tests</b>\n"
             "/addmocktest — Koi mock test log kijiye (platform, score, percentile, rank, weak/strong topics wagera)\n"
             "/mocktests — Apne saare logged mock tests dekhiye\n\n"
@@ -442,6 +445,21 @@ TEXT = {
         "hindi": "🧠 <b>आपके पेंडिंग रिवीजन</b>\n━━━━━━━━━━",
         "english": "🧠 <b>Your pending revisions</b>\n━━━━━━━━━━",
         "hinglish": "🧠 <b>Aapke pending revisions</b>\n━━━━━━━━━━",
+    },
+    "cancel_done": {
+        "hindi": "❌ ठीक है, जो भी चल रहा था वो रोक दिया। जब चाहें दोबारा शुरू कर सकते हैं।",
+        "english": "❌ Okay, cancelled whatever was in progress. Start again anytime.",
+        "hinglish": "❌ Theek hai, jo bhi chal raha tha wo rok diya. Jab chaho dobara shuru kar sakte ho.",
+    },
+    "cancel_nothing_active": {
+        "hindi": "अभी कुछ भी चल नहीं रहा था जिसे रोका जाए।",
+        "english": "Nothing was in progress to cancel.",
+        "hinglish": "Abhi kuch bhi chal nahi raha tha jise cancel kiya jaaye.",
+    },
+    "stale_callback": {
+        "hindi": "यह बटन अब काम नहीं करेगा — कृपया /start भेजकर फिर से शुरू करें।",
+        "english": "This button isn't valid anymore — please send /start to begin again.",
+        "hinglish": "Yeh button ab kaam nahi karega — kripya /start bhejkar phir se shuru karein.",
     },
     "revisions_empty": {
         "hindi": "अभी कोई रिवीजन पेंडिंग नहीं है। जैसे ही कोई टॉपिक पूरा करोगे, यहां रिवीजन शेड्यूल हो जाएंगे।",

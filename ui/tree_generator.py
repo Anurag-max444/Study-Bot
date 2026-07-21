@@ -16,7 +16,7 @@ Rendering notes:
 """
 import random
 from PIL import Image, ImageDraw, ImageFilter
-from branding import apply_watermark
+from ui.branding import apply_watermark
 
 STAGE_NAMES = {
     0: {"hindi": "बीज", "english": "Seed", "hinglish": "Beej"},

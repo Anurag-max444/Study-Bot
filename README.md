@@ -51,9 +51,9 @@ Python · `python-telegram-bot` · Supabase (Postgres) · `pdfplumber` + `fpdf2`
 
 ## Setup
 
-1. Run `ALL_MIGRATIONS.sql` in the Supabase SQL editor.
+1. Run `database/migrations/ALL_MIGRATIONS.sql` in the Supabase SQL editor.
 2. Get a bot token from [@BotFather](https://t.me/BotFather).
 3. Copy `.env.example` → `.env`, fill in the three values.
 4. `pip install -r requirements.txt && python bot.py`
 
-Long-term hosting and database migration notes: see `HOSTING_PLAYBOOK.md`.
+Long-term hosting and database migration notes: see `docs/HOSTING_PLAYBOOK.md`.

@@ -14,8 +14,9 @@ renders identically and never depends on a missing image file.
 import os
 from PIL import Image, ImageDraw, ImageFont
 
-_FONT_DIR = os.path.join(os.path.dirname(__file__), "fonts")
-_BOLD_FONT_PATH = os.path.join(_FONT_DIR, "NotoSans-Bold.ttf")
+import config
+
+_BOLD_FONT_PATH = os.path.join(config.FONTS_DIR, "NotoSans-Bold.ttf")
 
 
 def render_owl_icon(size: int = 64) -> Image.Image:
